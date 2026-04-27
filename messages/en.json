@@ -1,0 +1,62 @@
+{
+  "meta": {
+    "siteName": "TownGate",
+    "tagline": "Your gateway to exceptional real estate"
+  },
+  "nav": {
+    "home": "Home",
+    "projects": "Projects",
+    "about": "About",
+    "contact": "Contact"
+  },
+  "hero": {
+    "kicker": "Compound — New Capital",
+    "title": "We craft places where stories live.",
+    "subtitle": "Curated projects, refined delivery, and a partnership that starts with a conversation.",
+    "ctaProjects": "Explore projects",
+    "ctaContact": "Get in touch"
+  },
+  "home": {
+    "featuredTitle": "Featured projects",
+    "featuredSubtitle": "A glimpse of TownGate’s portfolio.",
+    "valuesTitle": "Why TownGate",
+    "v1Title": "Local expertise",
+    "v1Body": "Deep market insight with details that feel right for the region.",
+    "v2Title": "Transparency",
+    "v2Body": "Clear information at every step of your journey.",
+    "v3Title": "Visual craft",
+    "v3Body": "A digital experience that mirrors the quality of the build."
+  },
+  "projects": {
+    "title": "Projects",
+    "subtitle": "Discover our current and upcoming developments.",
+    "available": "Available",
+    "sold": "Sold",
+    "view": "View details",
+    "back": "All projects",
+    "location": "Location"
+  },
+  "about": {
+    "title": "About",
+    "body": "TownGate is a real estate development company focused on elevated residential and commercial experiences in the New Administrative Capital and growing markets—where creative vision meets disciplined execution."
+  },
+  "contact": {
+    "title": "Contact",
+    "subtitle": "Send us a note or reach us instantly on WhatsApp.",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone (optional)",
+    "message": "Message",
+    "submit": "Send",
+    "sending": "Sending…",
+    "success": "We received your message and will get back to you shortly.",
+    "error": "Something went wrong. Try again or message us on WhatsApp."
+  },
+  "footer": {
+    "rights": "All rights reserved."
+  },
+  "whatsapp": {
+    "label": "WhatsApp",
+    "prefill": "Hi TownGate, I’d like to know more about your projects."
+  }
+}
