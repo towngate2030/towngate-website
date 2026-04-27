@@ -39,6 +39,18 @@ For the contact form to send email:
 
 Without `RESEND_API_KEY`, `POST /api/contact` still returns success but only logs the payload on the server (useful for local dev).
 
+**Newsletter:** the footer form posts to `POST /api/newsletter`. With Resend configured, you receive an email per subscriber at `CONTACT_EMAIL`; otherwise the address is logged in server logs (set up Resend on Vercel for production).
+
+## Hidden admin URL (no button on the site)
+
+There is **no admin link** in the public UI. A placeholder internal page lives at:
+
+`/tg-cp-internal`
+
+Example: `https://your-deployment.vercel.app/tg-cp-internal`
+
+This is **obscurity, not security** — change the folder name (and the `tg-cp-internal` string in [`middleware.ts`](middleware.ts) matcher) to something only your team knows, then add real authentication before any sensitive actions.
+
 ## Logo asset
 
 Replace or add a high-res PNG at `public/brand/towngate-logo.png` if you export one from the official artwork. The header uses [`public/brand/towngate-mark.svg`](public/brand/towngate-mark.svg) as a lightweight fallback.
