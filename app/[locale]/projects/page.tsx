@@ -1,14 +1,14 @@
 import { getTranslations } from "next-intl/server";
 import { SectionHeading } from "@/components/SectionHeading";
 import { ProjectCard } from "@/components/projects/ProjectCard";
-import { getProjects } from "@/lib/projects";
+import { getProjectsForSite } from "@/lib/cms";
 
 type Props = { params: Promise<{ locale: string }> };
 
 export default async function ProjectsPage({ params }: Props) {
   const { locale } = await params;
   const t = await getTranslations("projects");
-  const projects = getProjects();
+  const projects = await getProjectsForSite();
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 md:px-6 md:py-16">

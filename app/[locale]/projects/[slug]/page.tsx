@@ -2,11 +2,14 @@ import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Link } from "@/i18n/routing";
-import { getProjectBySlug, getProjects } from "@/lib/projects";
+import { getProjectBySlugForSite } from "@/lib/cms";
 import { getWhatsAppUrl } from "@/lib/whatsapp";
+import { PortableText } from "@portabletext/react";
+import type { PortableTextBlock } from "@portabletext/types";
 
 export function generateStaticParams() {
-  return getProjects().map((p) => ({ slug: p.slug }));
+  // We render on demand; Sanity content can change without rebuilds.
+  return [];
 }
 
 type Props = {
@@ -15,13 +18,17 @@ type Props = {
 
 export default async function ProjectDetailPage({ params }: Props) {
   const { locale, slug } = await params;
-  const project = getProjectBySlug(slug);
+  const project = await getProjectBySlugForSite(slug);
   if (!project) notFound();
 
   const t = await getTranslations("projects");
   const tw = await getTranslations("whatsapp");
   const title = project.title[locale as "ar" | "en"];
-  const body = project.body[locale as "ar" | "en"];
+  const p = project as unknown as {
+    bodyPortable?: { ar: PortableTextBlock[]; en: PortableTextBlock[] };
+    videoUrls?: string[];
+  };
+  const bodyPortable = p.bodyPortable?.[locale as "ar" | "en"] ?? [];
   const loc = project.location[locale as "ar" | "en"];
   const wa = getWhatsAppUrl(
     `${tw("prefill")} (${title})`,
@@ -58,11 +65,7 @@ export default async function ProjectDetailPage({ params }: Props) {
           ← {t("back")}
         </Link>
         <div className="prose prose-lg mt-6 max-w-none text-brand-navy/90">
-          {body.split("\n").map((para, i) => (
-            <p key={i} className="mb-4 leading-relaxed">
-              {para}
-            </p>
-          ))}
+          <PortableText value={bodyPortable} />
         </div>
 
         {project.gallery.length > 0 ? (
@@ -79,6 +82,16 @@ export default async function ProjectDetailPage({ params }: Props) {
                   className="object-cover"
                   sizes="(max-width:768px) 100vw, 400px"
                 />
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        {p.videoUrls?.length ? (
+          <div className="mt-10 space-y-4">
+            {p.videoUrls.slice(0, 2).map((v) => (
+              <div key={v} className="overflow-hidden rounded-2xl border border-brand-navy/10 bg-black">
+                <video src={v} controls className="h-auto w-full" />
               </div>
             ))}
           </div>

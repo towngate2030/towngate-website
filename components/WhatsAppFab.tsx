@@ -1,21 +1,31 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useLocale } from "next-intl";
 import { getWhatsAppUrl } from "@/lib/whatsapp";
 
+type WhatsAppContact = { name: string; e164: string };
+
 export function WhatsAppFab() {
   const locale = useLocale();
-  const [contacts, setContacts] = useState<
-    { name: string; e164: string }[] | null
-  >(null);
-
-  useEffect(() => {
-    fetch("/api/public/whatsapp")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => setContacts(d?.contacts || null))
-      .catch(() => setContacts(null));
-  }, []);
+  const contacts = (() => {
+    try {
+      const anyWindow = window as unknown as { __TG_WA?: unknown };
+      if (!Array.isArray(anyWindow.__TG_WA)) return null;
+      return (anyWindow.__TG_WA as unknown[])
+        .map((c) => {
+          if (!c || typeof c !== "object") return null;
+          const o = c as Record<string, unknown>;
+          return {
+            name: String(o.name || ""),
+            e164: String(o.e164 || "").replace(/\D/g, ""),
+          };
+        })
+        .filter((x): x is WhatsAppContact => Boolean(x?.e164));
+    } catch {
+      return null;
+    }
+  })();
 
   const first = contacts?.[0]?.e164;
   const prefill =

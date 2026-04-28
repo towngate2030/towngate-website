@@ -3,6 +3,7 @@ import { Hero } from "@/components/home/Hero";
 import { SectionHeading } from "@/components/SectionHeading";
 import { ProjectCard } from "@/components/projects/ProjectCard";
 import { getFeaturedProjectsForSite, getHeroSettings, getValueBoxes } from "@/lib/cms";
+import type { Project } from "@/lib/projects";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -32,7 +33,7 @@ export default async function HomePage({ params }: Props) {
           }
         />
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {featured.map((project) => (
+          {featured.map((project: Project) => (
             <ProjectCard
               key={project.slug}
               project={project}

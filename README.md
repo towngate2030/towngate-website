@@ -71,9 +71,14 @@ If the domain’s DNS is on Cloudflare:
 2. In Cloudflare → **DNS**, create the records Vercel shows. Turn **Proxy** (orange cloud) on or off per your preference; SSL mode **Full (strict)** works well with Vercel.
 3. Avoid duplicate `A` records pointing elsewhere.
 
-## Admin / CMS (next step)
+## Admin / CMS
 
-Project copy and images are currently **code-driven** in `lib/projects.ts` for a fast ship. To let admins add projects without deploys, add **Sanity** (or Payload + MongoDB) and replace `getProjects()` with a CMS client — see the product plan for bilingual fields (`titleAr` / `titleEn`, etc.).
+This repo uses **Sanity** for admin content editing (projects, hero, Why TownGate, WhatsApp contacts).
+
+- Admin UI is hosted by Sanity (access via [Sanity Manage](https://www.sanity.io/manage))
+- Public site reads from Sanity via `@sanity/client`
+
+Set the required Sanity environment variables from [`.env.example`](.env.example).
 
 ## Scripts
 

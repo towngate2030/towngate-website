@@ -62,6 +62,25 @@ export default async function InternalAdminEntryPage() {
           <PanelCard title="Projects" body="Add/edit projects (coming next)." />
           <PanelCard title="Posts" body="News & updates (coming next)." />
         </div>
+
+        <div className="flex flex-wrap gap-3">
+          <a
+            href={`https://www.sanity.io/manage`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center rounded-full bg-brand-orange px-6 py-3 text-sm font-bold text-white shadow-lg shadow-brand-orange/25 transition hover:brightness-110"
+          >
+            Open Sanity Studio
+          </a>
+          <a
+            href="https://www.sanity.io/manage"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center rounded-full border border-white/20 px-6 py-3 text-sm font-semibold text-tg-cream transition hover:bg-white/10"
+          >
+            Sanity manage
+          </a>
+        </div>
       </div>
     </div>
   );

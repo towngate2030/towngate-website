@@ -13,6 +13,14 @@ export async function Footer({ locale }: { locale: string }) {
 
   return (
     <footer className="border-t border-brand-navy/10 bg-brand-navy text-tg-cream">
+      <script
+        // Let the floating WhatsApp button pick the first contact without an API call.
+        dangerouslySetInnerHTML={{
+          __html: `window.__TG_WA=${JSON.stringify(
+            contacts.map((c) => ({ name: c.name, e164: c.e164 })),
+          )};`,
+        }}
+      />
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 md:grid-cols-[1fr_auto] md:items-start md:px-6">
         <div className="flex flex-col gap-6 md:flex-row md:flex-wrap md:items-start md:justify-between">
           <div>

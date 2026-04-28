@@ -1,4 +1,4 @@
-import { getDb } from "@/lib/db";
+import { sanityClient } from "@/lib/sanity";
 import { getFeaturedProjects as getSeedFeatured, getProjects as getSeedProjects } from "@/lib/projects";
 
 export type Locale = "ar" | "en";
@@ -8,92 +8,86 @@ export type HeroSettings = {
   kicker: Record<Locale, string>;
   title: Record<Locale, string>;
   subtitle: Record<Locale, string>;
+  valueBoxes: Array<{
+    order: number;
+    title: Record<Locale, string>;
+    body: Record<Locale, string>;
+  }>;
+  whatsappContacts: Array<{ order: number; name: string; e164: string }>;
 };
-
-export type ValueBox = {
-  order: number;
-  title: Record<Locale, string>;
-  body: Record<Locale, string>;
-};
-
-export type WhatsAppContact = {
-  order: number;
-  name: string;
-  e164: string;
-};
-
-export async function ensureDefaults() {
-  const db = getDb();
-  if (!db) return;
-
-  const existing = await db.siteSettings.findUnique({ where: { id: 1 } });
-  if (!existing) {
-    await db.siteSettings.create({ data: { id: 1 } });
-  }
-
-  const boxes = await db.valueBox.findMany({ orderBy: { order: "asc" } });
-  if (boxes.length === 0) {
-    await db.valueBox.createMany({
-      data: [
-        {
-          order: 1,
-          titleAr: "خبرة محلية",
-          titleEn: "Local expertise",
-          bodyAr: "فهم عميق للسوق ولمسات تناسب المنطقة.",
-          bodyEn: "Deep market insight with details that feel right for the region.",
-        },
-        {
-          order: 2,
-          titleAr: "شفافية",
-          titleEn: "Transparency",
-          bodyAr: "معلومات واضحة في كل مرحلة من الرحلة.",
-          bodyEn: "Clear information at every step of your journey.",
-        },
-        {
-          order: 3,
-          titleAr: "إبهار بصري",
-          titleEn: "Visual craft",
-          bodyAr: "تجربة رقمية تعكس جودة المشروع الحقيقية.",
-          bodyEn: "A digital experience that mirrors the quality of the build.",
-        },
-      ],
-    });
-  }
-}
 
 export async function getHeroSettings(): Promise<HeroSettings> {
-  const db = getDb();
-  if (!db) {
-    return {
-      heroBgUrl: "",
-      kicker: { ar: "كمبوند — العاصمة الإدارية", en: "Compound — New Capital" },
-      title: {
-        ar: "نصمّم أماكن تعيش فيها القصة.",
-        en: "We craft places where stories live.",
-      },
-      subtitle: {
-        ar: "مشاريع مختارة، جودة تنفيذ، وشراكة تبدأ من أول محادثة.",
-        en: "Curated projects, refined delivery, and a partnership that starts with a conversation.",
-      },
-    };
+  const pid = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
+  if (!pid) {
+    return seedHero();
   }
 
-  await ensureDefaults();
-  const s = await db.siteSettings.findUnique({ where: { id: 1 } });
-  if (!s) return getHeroSettings();
+  type SiteSettingsDoc = {
+    heroBgUrl?: string;
+    kickerAr?: string;
+    kickerEn?: string;
+    heroTitleAr?: string;
+    heroTitleEn?: string;
+    heroSubtitleAr?: string;
+    heroSubtitleEn?: string;
+    valueBoxes?: Array<{
+      order?: number;
+      titleAr?: string;
+      titleEn?: string;
+      bodyAr?: string;
+      bodyEn?: string;
+    }>;
+    whatsappContacts?: Array<{ order?: number; name?: string; e164?: string }>;
+  };
+
+  const doc = await sanityClient.fetch<SiteSettingsDoc | null>(
+    `*[_type=="siteSettings"][0]{
+      heroBgUrl,
+      kickerAr,kickerEn,
+      heroTitleAr,heroTitleEn,
+      heroSubtitleAr,heroSubtitleEn,
+      valueBoxes[]{order,titleAr,titleEn,bodyAr,bodyEn},
+      whatsappContacts[]{order,name,e164}
+    }`,
+  );
+
+  if (!doc) return seedHero();
 
   return {
-    heroBgUrl: s.heroBgUrl,
-    kicker: { ar: s.kickerAr, en: s.kickerEn },
-    title: { ar: s.heroTitleAr, en: s.heroTitleEn },
-    subtitle: { ar: s.heroSubtitleAr, en: s.heroSubtitleEn },
+    heroBgUrl: doc.heroBgUrl || "",
+    kicker: { ar: doc.kickerAr || seedHero().kicker.ar, en: doc.kickerEn || seedHero().kicker.en },
+    title: { ar: doc.heroTitleAr || seedHero().title.ar, en: doc.heroTitleEn || seedHero().title.en },
+    subtitle: { ar: doc.heroSubtitleAr || seedHero().subtitle.ar, en: doc.heroSubtitleEn || seedHero().subtitle.en },
+    valueBoxes: (doc.valueBoxes || [])
+      .map((b) => ({
+        order: Number(b.order || 0),
+        title: { ar: String(b.titleAr || ""), en: String(b.titleEn || "") },
+        body: { ar: String(b.bodyAr || ""), en: String(b.bodyEn || "") },
+      }))
+      .filter((b) => b.order),
+    whatsappContacts: (doc.whatsappContacts || [])
+      .map((c) => ({
+        order: Number(c.order || 0),
+        name: String(c.name || ""),
+        e164: String(c.e164 || "").replace(/\D/g, ""),
+      }))
+      .filter((c) => c.order && c.e164),
   };
 }
 
-export async function getValueBoxes(): Promise<ValueBox[]> {
-  const db = getDb();
-  if (!db) {
-    return [
+function seedHero(): HeroSettings {
+  return {
+    heroBgUrl: "",
+    kicker: { ar: "كمبوند — العاصمة الإدارية", en: "Compound — New Capital" },
+    title: {
+      ar: "نصمّم أماكن تعيش فيها القصة.",
+      en: "We craft places where stories live.",
+    },
+    subtitle: {
+      ar: "مشاريع مختارة، جودة تنفيذ، وشراكة تبدأ من أول محادثة.",
+      en: "Curated projects, refined delivery, and a partnership that starts with a conversation.",
+    },
+    valueBoxes: [
       {
         order: 1,
         title: { ar: "خبرة محلية", en: "Local expertise" },
@@ -118,55 +112,92 @@ export async function getValueBoxes(): Promise<ValueBox[]> {
           en: "A digital experience that mirrors the quality of the build.",
         },
       },
-    ];
-  }
-
-  await ensureDefaults();
-  const rows = await db.valueBox.findMany({ orderBy: { order: "asc" } });
-  return rows.map((r) => ({
-    order: r.order,
-    title: { ar: r.titleAr, en: r.titleEn },
-    body: { ar: r.bodyAr, en: r.bodyEn },
-  }));
+    ],
+    whatsappContacts: [{ order: 1, name: "Sales", e164: "966593053792" }],
+  };
 }
 
-export async function getWhatsAppContacts(): Promise<WhatsAppContact[]> {
-  const db = getDb();
-  if (!db) {
-    return [{ order: 1, name: "Sales", e164: "966593053792" }];
-  }
-
-  const rows = await db.whatsAppContact.findMany({ orderBy: { order: "asc" } });
-  if (rows.length === 0) {
-    await db.whatsAppContact.create({
-      data: { order: 1, name: "Sales", e164: "966593053792" },
-    });
-    return [{ order: 1, name: "Sales", e164: "966593053792" }];
-  }
-  return rows.map((r) => ({ order: r.order, name: r.name, e164: r.e164 }));
+export async function getValueBoxes() {
+  const hero = await getHeroSettings();
+  return hero.valueBoxes.length ? hero.valueBoxes : seedHero().valueBoxes;
 }
 
-export async function getProjectsForSite() {
-  const db = getDb();
-  if (!db) return getSeedProjects();
-  const rows = await db.project.findMany({ orderBy: { updatedAt: "desc" } });
-  if (rows.length === 0) return getSeedProjects();
-  return rows.map((p) => ({
-    slug: p.slug,
-    featured: p.featured,
-    status: (p.status === "sold" ? "sold" : "available") as "sold" | "available",
-    title: { ar: p.titleAr, en: p.titleEn },
-    excerpt: { ar: p.excerptAr, en: p.excerptEn },
-    body: { ar: JSON.stringify(p.bodyAr), en: JSON.stringify(p.bodyEn) },
-    location: { ar: p.locationAr, en: p.locationEn },
-    coverImage: p.imageUrls[0] || "",
-    gallery: p.imageUrls.slice(1),
-  }));
+export async function getWhatsAppContacts() {
+  const hero = await getHeroSettings();
+  return hero.whatsappContacts.length ? hero.whatsappContacts : seedHero().whatsappContacts;
+}
+
+export type SiteProject = {
+  slug: string;
+  featured: boolean;
+  status: "available" | "sold";
+  title: Record<Locale, string>;
+  excerpt: Record<Locale, string>;
+  location: Record<Locale, string>;
+  coverImage: string;
+  gallery: string[];
+  videoUrls: string[];
+  bodyPortable: { ar: unknown[]; en: unknown[] };
+  // Compatibility with existing `Project` UI types
+  body: Record<Locale, string>;
+};
+
+export async function getProjectsForSite(): Promise<SiteProject[]> {
+  const pid = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
+  if (!pid) return getSeedProjects() as unknown as SiteProject[];
+
+  type ProjectDoc = {
+    slug?: string;
+    featured?: boolean;
+    status?: string;
+    titleAr?: string;
+    titleEn?: string;
+    excerptAr?: string;
+    excerptEn?: string;
+    locationAr?: string;
+    locationEn?: string;
+    imageUrls?: string[];
+    videoUrls?: string[];
+    bodyAr?: unknown[];
+    bodyEn?: unknown[];
+  };
+
+  const rows = await sanityClient.fetch<ProjectDoc[] | null>(
+    `*[_type=="project"]|order(_updatedAt desc){
+      "slug": slug.current,
+      featured,status,
+      titleAr,titleEn,excerptAr,excerptEn,locationAr,locationEn,
+      imageUrls, videoUrls,
+      bodyAr, bodyEn
+    }`,
+  );
+
+  if (!rows?.length) return getSeedProjects() as unknown as SiteProject[];
+
+  return rows
+    .filter((p) => p.slug)
+    .map((p) => ({
+      slug: p.slug as string,
+      featured: Boolean(p.featured),
+      status: p.status === "sold" ? "sold" : "available",
+      title: { ar: p.titleAr || "", en: p.titleEn || "" },
+      excerpt: { ar: p.excerptAr || "", en: p.excerptEn || "" },
+      location: { ar: p.locationAr || "", en: p.locationEn || "" },
+      coverImage: (p.imageUrls?.[0] as string) || "",
+      gallery: (p.imageUrls || []).slice(1),
+      videoUrls: (p.videoUrls || []).slice(0, 2),
+      bodyPortable: { ar: p.bodyAr || [], en: p.bodyEn || [] },
+      body: { ar: "", en: "" },
+    }));
 }
 
 export async function getFeaturedProjectsForSite() {
   const all = await getProjectsForSite();
   const featured = all.filter((p) => p.featured);
-  return featured.length ? featured : getSeedFeatured();
+  return featured.length ? featured : (getSeedFeatured() as unknown as SiteProject[]);
 }
 
+export async function getProjectBySlugForSite(slug: string) {
+  const all = await getProjectsForSite();
+  return all.find((p) => p.slug === slug);
+}
