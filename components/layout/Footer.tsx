@@ -2,11 +2,13 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/routing";
 import { getWhatsAppUrl } from "@/lib/whatsapp";
 import { NewsletterSignup } from "@/components/newsletter/NewsletterSignup";
+import { getWhatsAppContacts } from "@/lib/cms";
 
 export async function Footer({ locale }: { locale: string }) {
   const t = await getTranslations("footer");
   const tn = await getTranslations("nav");
   const tw = await getTranslations("whatsapp");
+  const contacts = await getWhatsAppContacts();
   const wa = getWhatsAppUrl(tw("prefill"));
 
   return (
@@ -20,14 +22,31 @@ export async function Footer({ locale }: { locale: string }) {
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <a
-              href={wa}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center rounded-full bg-brand-orange px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-brand-orange/25 transition hover:brightness-110"
-            >
-              {tw("label")}
-            </a>
+            {contacts.slice(0, 3).map((c) => (
+              <a
+                key={`${c.order}-${c.e164}`}
+                href={`https://wa.me/${String(c.e164).replace(/\D/g, "")}?text=${encodeURIComponent(
+                  tw("prefill"),
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-brand-orange px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-brand-orange/25 transition hover:brightness-110"
+              >
+                {tw("label")}
+                <span className="opacity-90">•</span>
+                <span className="text-white/90">{c.name}</span>
+              </a>
+            ))}
+            {contacts.length === 0 ? (
+              <a
+                href={wa}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center rounded-full bg-brand-orange px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-brand-orange/25 transition hover:brightness-110"
+              >
+                {tw("label")}
+              </a>
+            ) : null}
             <Link
               href="/contact"
               locale={locale}

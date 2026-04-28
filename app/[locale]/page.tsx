@@ -2,21 +2,35 @@ import { getTranslations } from "next-intl/server";
 import { Hero } from "@/components/home/Hero";
 import { SectionHeading } from "@/components/SectionHeading";
 import { ProjectCard } from "@/components/projects/ProjectCard";
-import { getFeaturedProjects } from "@/lib/projects";
+import { getFeaturedProjectsForSite, getHeroSettings, getValueBoxes } from "@/lib/cms";
 
 type Props = { params: Promise<{ locale: string }> };
 
 export default async function HomePage({ params }: Props) {
   const { locale } = await params;
-  const t = await getTranslations("home");
   const tp = await getTranslations("projects");
-  const featured = getFeaturedProjects();
+  const hero = await getHeroSettings();
+  const boxes = await getValueBoxes();
+  const featured = await getFeaturedProjectsForSite();
 
   return (
     <>
-      <Hero locale={locale} />
+      <Hero
+        locale={locale}
+        bgUrl={hero.heroBgUrl || undefined}
+        kicker={hero.kicker[locale as "ar" | "en"]}
+        title={hero.title[locale as "ar" | "en"]}
+        subtitle={hero.subtitle[locale as "ar" | "en"]}
+      />
       <section className="mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-20">
-        <SectionHeading title={t("featuredTitle")} subtitle={t("featuredSubtitle")} />
+        <SectionHeading
+          title={locale === "ar" ? "مشاريع مميزة" : "Featured projects"}
+          subtitle={
+            locale === "ar"
+              ? "لمحة من محفظة TownGate."
+              : "A glimpse of TownGate’s portfolio."
+          }
+        />
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
           {featured.map((project) => (
             <ProjectCard
@@ -34,11 +48,21 @@ export default async function HomePage({ params }: Props) {
       </section>
       <section className="border-t border-brand-navy/10 bg-white py-16 md:py-20">
         <div className="mx-auto max-w-6xl px-4 md:px-6">
-          <SectionHeading title={t("valuesTitle")} align="center" />
+          <SectionHeading
+            title={locale === "ar" ? "لماذا TownGate" : "Why TownGate"}
+            align="center"
+          />
           <div className="grid gap-8 md:grid-cols-3">
-            <ValueBlock title={t("v1Title")} body={t("v1Body")} />
-            <ValueBlock title={t("v2Title")} body={t("v2Body")} />
-            <ValueBlock title={t("v3Title")} body={t("v3Body")} />
+            {boxes
+              .sort((a, b) => a.order - b.order)
+              .slice(0, 3)
+              .map((b) => (
+                <ValueBlock
+                  key={b.order}
+                  title={b.title[locale as "ar" | "en"]}
+                  body={b.body[locale as "ar" | "en"]}
+                />
+              ))}
           </div>
         </div>
       </section>
