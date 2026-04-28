@@ -1,4 +1,8 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
+import Image from "next/image";
+import { AdminLoginForm } from "@/components/admin/AdminLoginForm";
+import { getAdminCookieName, verifyAdminToken } from "@/lib/adminSession";
 
 export const metadata: Metadata = {
   title: "Internal",
@@ -10,27 +14,64 @@ export const metadata: Metadata = {
  * Change the folder name + middleware matcher if this URL leaks.
  * Next: add real auth + CMS or DB-backed admin here.
  */
-export default function InternalAdminEntryPage() {
+export default async function InternalAdminEntryPage() {
+  const token = (await cookies()).get(getAdminCookieName())?.value;
+  const session = verifyAdminToken(token);
+
+  if (!session.ok) {
+    return (
+      <div className="min-h-screen bg-brand-navy px-6 py-16 text-tg-cream">
+        <AdminLoginForm />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-brand-navy px-6 py-16 text-tg-cream">
-      <div className="mx-auto max-w-lg rounded-2xl border border-white/15 bg-white/5 p-8">
-        <p className="text-sm font-bold uppercase tracking-wide text-brand-orange">
-          TownGate
-        </p>
-        <h1 className="mt-3 text-2xl font-bold">Internal access</h1>
-        <p className="mt-4 text-sm leading-relaxed text-tg-cream/85">
-          هذه صفحة دخول داخلية فقط — لا تظهر في القوائم. لاحقًا يمكن ربطها
-          بلوحة تحكم حقيقية (مصادقة + تعديل مشاريع من قاعدة بيانات أو CMS).
-        </p>
-        <p className="mt-4 text-sm leading-relaxed text-tg-cream/85">
-          This URL is intentionally hidden from the public site. Wire your
-          admin UI or authentication here when ready.
-        </p>
-        <p className="mt-6 text-xs text-tg-cream/50">
-          Path: <code className="rounded bg-black/30 px-1.5 py-0.5">/tg-cp-internal</code> — rename
-          folder + middleware exclusion together for security-through-obscurity.
-        </p>
+      <div className="mx-auto flex max-w-3xl flex-col gap-6 rounded-2xl border border-white/15 bg-white/5 p-8 backdrop-blur-sm">
+        <div className="flex items-center justify-between gap-4">
+          <Image
+            src="/brand/towngate-mark.svg"
+            alt="TownGate"
+            width={200}
+            height={48}
+            className="h-9 w-auto"
+            priority
+          />
+          <form action="/api/admin/logout" method="post">
+            <button className="rounded-full border border-white/20 px-4 py-2 text-xs font-bold text-tg-cream transition hover:bg-white/10">
+              Logout
+            </button>
+          </form>
+        </div>
+
+        <div>
+          <p className="text-sm font-bold uppercase tracking-wide text-brand-orange">
+            TownGate control panel
+          </p>
+          <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-white">
+            Welcome, {session.username}
+          </h1>
+          <p className="mt-3 text-sm leading-relaxed text-tg-cream/80">
+            دي لوحة داخلية. الخطوة الجاية نركّب هنا إدارة المشاريع (إضافة/تعديل/رفع صور)
+            بشكل مباشر بدل تعديل الكود.
+          </p>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <PanelCard title="Projects" body="Add/edit projects (coming next)." />
+          <PanelCard title="Posts" body="News & updates (coming next)." />
+        </div>
       </div>
+    </div>
+  );
+}
+
+function PanelCard({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-brand-navy/30 p-5">
+      <p className="text-sm font-extrabold text-white">{title}</p>
+      <p className="mt-2 text-xs leading-relaxed text-tg-cream/75">{body}</p>
     </div>
   );
 }
