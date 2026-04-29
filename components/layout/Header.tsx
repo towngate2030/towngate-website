@@ -15,6 +15,8 @@ export async function Header({ locale }: { locale: string }) {
     { href: "/contact", label: t("contact") },
   ] as const;
 
+  const mobileLinks = links.filter((l) => l.href !== "/contact");
+
   return (
     <header className="sticky top-0 z-50 bg-amber-100/95 md:absolute md:inset-x-0 md:top-0 md:bg-transparent">
       {/* Desktop row */}
@@ -45,7 +47,7 @@ export async function Header({ locale }: { locale: string }) {
             <LocaleSwitcher />
           </div>
           <nav className="flex min-w-0 flex-1 items-center justify-center gap-2 overflow-x-auto px-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {links.map(({ href, label }) => (
+            {mobileLinks.map(({ href, label }) => (
               <Link
                 key={href}
                 href={href}
