@@ -86,20 +86,20 @@ export function MobileMenu({
             />
 
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
+              initial={{ opacity: 0, y: -8, x: 8 }}
+              animate={{ opacity: 1, y: 0, x: 0 }}
+              exit={{ opacity: 0, y: -8, x: 8 }}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className="absolute left-1/2 top-20 w-[min(90vw,320px)] -translate-x-1/2 overflow-hidden rounded-2xl border border-white/10 bg-brand-navy/95 shadow-2xl"
+              className="absolute right-4 top-[72px] w-fit max-w-[calc(100vw-32px)] overflow-hidden rounded-2xl border border-white/10 bg-brand-navy/95 shadow-2xl"
             >
-              <nav className="divide-y divide-white/10">
+              <nav className="flex flex-col gap-2 p-3">
                 {ordered.map((it) => (
                   <Link
                     key={it.href}
                     href={it.href}
                     locale={locale}
                     onClick={() => setOpen(false)}
-                    className="block w-full px-5 py-3 text-center text-sm font-extrabold text-tg-cream transition hover:bg-white/10 active:bg-white/15"
+                    className="flex h-12 w-full items-center justify-center whitespace-nowrap rounded-xl bg-brand-orange px-4 text-center text-base font-extrabold text-white shadow-sm shadow-brand-orange/20 transition hover:brightness-110 active:brightness-105"
                   >
                     {it.label}
                   </Link>
@@ -111,7 +111,7 @@ export function MobileMenu({
                     setOpen(false);
                     router.replace(pathname, { locale: nextLocale });
                   }}
-                  className="block w-full px-5 py-3 text-center text-sm font-extrabold text-tg-cream transition hover:bg-white/10 active:bg-white/15"
+                  className="flex h-12 w-full items-center justify-center whitespace-nowrap rounded-xl bg-brand-orange px-4 text-center text-base font-extrabold text-white shadow-sm shadow-brand-orange/20 transition hover:brightness-110 active:brightness-105"
                 >
                   {localeLabel}
                 </button>
