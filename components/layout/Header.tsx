@@ -26,14 +26,14 @@ export async function Header({ locale }: { locale: string }) {
               key={href}
               href={href}
               locale={locale}
-              className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white/90 backdrop-blur-md transition hover:border-brand-orange/60 hover:bg-white/15 hover:text-white hover:shadow-lg hover:shadow-brand-orange/20"
+              className="rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-base font-semibold text-white/95 transition hover:border-brand-orange/60 hover:bg-white/15 hover:text-white hover:shadow-lg hover:shadow-brand-orange/20"
             >
               {label}
             </Link>
           ))}
         </nav>
         <div className="flex items-center gap-2">
-          <div className="rounded-full border border-white/20 bg-white/10 backdrop-blur-md">
+          <div className="rounded-full border border-white/20 bg-white/10">
             <LocaleSwitcher />
           </div>
         </div>
