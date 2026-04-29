@@ -32,7 +32,7 @@ export function Hero({ locale, bgUrl, logoUrl, kicker, title, subtitle, primaryC
         />
       ) : null}
 
-      <div className="relative mx-auto max-w-6xl px-4 py-20 md:px-6 md:py-28">
+      <div className="relative mx-auto max-w-6xl px-4 py-14 md:px-6 md:py-28 md:pt-32">
         {logoUrl ? (
           <div className="mb-6 flex items-center justify-start">
             <div className="relative h-16 w-56 sm:h-20 sm:w-64 md:h-24 md:w-80">

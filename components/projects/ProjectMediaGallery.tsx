@@ -31,7 +31,7 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
   const imgs = useMemo(() => uniq(images), [images]);
   const vids = useMemo(() => uniq(videos).slice(0, 20), [videos]);
   // Keep all 3 columns aligned. Use a slightly shorter height so videos fill without letterboxing.
-  const mediaHeight = "h-[320px] sm:h-[380px] md:h-[460px] lg:h-[520px]";
+  const mediaHeight = "h-[260px] sm:h-[320px] md:h-[460px] lg:h-[520px]";
 
   const [selected, setSelected] = useState<Selected | null>(() => {
     if (imgs[0]) return { kind: "image", src: imgs[0] };
@@ -77,7 +77,7 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
     <section className="rounded-3xl border border-brand-navy/10 bg-white p-4 shadow-sm md:p-6">
       <div className="grid gap-4 md:grid-cols-[160px_1fr_160px] md:gap-6">
         {/* Left rail (videos) — moves top -> bottom */}
-        <div className="order-2 md:order-1">
+        <div className="order-2 hidden md:block md:order-1">
           <p className="mb-3 text-xs font-bold uppercase tracking-wide text-brand-navy/60">
             {sideLabelVideos}
           </p>
@@ -208,10 +208,86 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
               ) : null}
             </div>
           </div>
+
+          {/* Mobile strips */}
+          <div className="mt-4 space-y-4 md:hidden">
+            <div>
+              <p className="mb-2 text-xs font-bold uppercase tracking-wide text-brand-navy/60">
+                {sideLabelImages}
+              </p>
+              <div className="flex gap-3 overflow-x-auto rounded-2xl border border-brand-navy/10 bg-white p-3">
+                {imgs.length ? (
+                  imgs.map((src) => (
+                    <button
+                      key={src}
+                      type="button"
+                      onClick={() => choose({ kind: "image", src })}
+                      className={`relative h-16 w-24 shrink-0 overflow-hidden rounded-xl border ${
+                        selected?.kind === "image" && selected.src === src
+                          ? "border-brand-orange"
+                          : "border-brand-navy/10"
+                      }`}
+                      aria-label="Image"
+                    >
+                      <Image
+                        src={src}
+                        alt={title}
+                        fill
+                        className="object-cover"
+                        sizes="120px"
+                      />
+                    </button>
+                  ))
+                ) : (
+                  <div className="text-xs font-semibold text-brand-navy/60">
+                    {locale === "ar" ? "لا توجد صور" : "No images"}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <p className="mb-2 text-xs font-bold uppercase tracking-wide text-brand-navy/60">
+                {sideLabelVideos}
+              </p>
+              <div className="flex gap-3 overflow-x-auto rounded-2xl border border-brand-navy/10 bg-white p-3">
+                {vids.length ? (
+                  vids.map((v) => (
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => choose({ kind: "video", src: v })}
+                      className={`relative h-16 w-28 shrink-0 overflow-hidden rounded-xl border ${
+                        selected?.kind === "video" && selected.src === v
+                          ? "border-brand-orange"
+                          : "border-brand-navy/10"
+                      } bg-black`}
+                      aria-label="Video"
+                    >
+                      <video
+                        src={v}
+                        muted
+                        playsInline
+                        preload="metadata"
+                        className="h-full w-full object-cover opacity-90"
+                      />
+                      <div className="absolute bottom-2 left-2 rounded-full bg-white/90 px-2 py-1 text-[10px] font-bold text-brand-navy">
+                        ▶
+                      </div>
+                    </button>
+                  ))
+                ) : (
+                  <div className="text-xs font-semibold text-brand-navy/60">
+                    {locale === "ar" ? "لا يوجد فيديوهات" : "No videos"}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Right rail (images) — moves bottom -> top */}
-        <div className="order-3">
+        <div className="order-3 hidden md:block">
           <p className="mb-3 text-xs font-bold uppercase tracking-wide text-brand-navy/60">
             {sideLabelImages}
           </p>
