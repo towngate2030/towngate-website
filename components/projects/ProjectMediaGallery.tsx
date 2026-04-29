@@ -213,16 +213,8 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
                       swipeRef.current.active = false;
                     }}
                   >
-                    {/* Soft blurred backdrop so "contain" doesn't feel empty */}
-                    <Image
-                      src={effectiveSelected.src}
-                      alt=""
-                      fill
-                      aria-hidden
-                      className="object-cover scale-110 blur-2xl opacity-35"
-                      sizes="100vw"
-                      priority
-                    />
+                    {/* Keep mobile clean: no overlays that can obscure media */}
+                    <div className="absolute inset-0 bg-black/10 md:bg-transparent" />
                     <Image
                       src={effectiveSelected.src}
                       alt={title}
@@ -231,7 +223,7 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
                       sizes="(max-width:768px) 100vw, 60vw"
                       priority
                     />
-                    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,rgba(0,0,0,0.35))]" />
+                    <div className="pointer-events-none absolute inset-0 hidden md:block bg-[radial-gradient(ellipse_at_center,transparent_40%,rgba(0,0,0,0.28))]" />
                   </motion.div>
                 ) : (
                   <motion.div
