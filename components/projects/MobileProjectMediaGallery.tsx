@@ -54,11 +54,17 @@ export function MobileProjectMediaGallery({
   const [activeIndex, setActiveIndex] = useState(0);
   const [isUserInteracting, setIsUserInteracting] = useState(false);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [fullscreen, setFullscreen] = useState<null | { type: "image" | "video"; url: string }>(
+    null,
+  );
 
   const interactTimer = useRef<number | null>(null);
   const thumbRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const failedIds = useRef<Set<string>>(new Set());
+  const stripRef = useRef<HTMLDivElement | null>(null);
+  const stripPauseRef = useRef(false);
+  const stripResumeTimer = useRef<number | null>(null);
 
   const activeItem = mediaItems[activeIndex] ?? null;
 
@@ -118,6 +124,42 @@ export function MobileProjectMediaGallery({
     }, 700);
   }
 
+  function pauseStripAndResume() {
+    stripPauseRef.current = true;
+    if (stripResumeTimer.current) window.clearTimeout(stripResumeTimer.current);
+    stripResumeTimer.current = window.setTimeout(() => {
+      stripPauseRef.current = false;
+    }, 3000);
+  }
+
+  // Cinematic thumbnail strip auto-loop (continuous)
+  useEffect(() => {
+    const el = stripRef.current;
+    if (!el) return;
+
+    let raf = 0;
+    let last = performance.now();
+    const pxPerSec = 18; // slow + cinematic
+
+    const tick = (now: number) => {
+      raf = requestAnimationFrame(tick);
+      const dt = (now - last) / 1000;
+      last = now;
+
+      if (stripPauseRef.current) return;
+      if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
+
+      const half = el.scrollWidth / 2;
+      if (!half) return;
+
+      el.scrollLeft += pxPerSec * dt;
+      if (el.scrollLeft >= half) el.scrollLeft -= half;
+    };
+
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [mediaItems.length]);
+
   function setActiveFromThumb(idx: number) {
     setActiveIndex(idx);
     setIsVideoPlaying(false);
@@ -159,6 +201,36 @@ export function MobileProjectMediaGallery({
     <div className="md:hidden">
       {/* Main display */}
       <div className="relative flex aspect-video w-full max-w-full items-center justify-center overflow-hidden rounded-2xl bg-[#111]">
+        {/* Fullscreen button */}
+        <button
+          type="button"
+          className="absolute right-3 top-3 z-10 grid h-9 w-9 place-items-center rounded-full bg-black/45 text-white backdrop-blur transition hover:bg-black/55"
+          aria-label="Fullscreen"
+          onClick={() => {
+            if (!activeItem) return;
+            if (activeItem.type === "video") {
+              const v = videoRef.current;
+              if (v && typeof (v as any).webkitEnterFullscreen === "function") {
+                try {
+                  (v as any).webkitEnterFullscreen();
+                  return;
+                } catch {
+                  // fallback below
+                }
+              }
+              if (v && typeof v.requestFullscreen === "function") {
+                void v.requestFullscreen().catch(() => setFullscreen({ type: "video", url: activeItem.url }));
+                return;
+              }
+              setFullscreen({ type: "video", url: activeItem.url });
+              return;
+            }
+            setFullscreen({ type: "image", url: activeItem.url });
+          }}
+        >
+          <span className="text-lg font-black leading-none">⤢</span>
+        </button>
+
         {activeItem?.type === "image" ? (
           <img
             src={activeItem.url}
@@ -208,17 +280,31 @@ export function MobileProjectMediaGallery({
 
       {/* Cinematic strip */}
       <div
+        ref={stripRef}
         className="mt-3 flex w-full gap-2 overflow-x-auto px-1 pb-2 pt-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [scroll-snap-type:x_mandatory]"
-        onTouchStart={markInteractingBriefly}
-        onTouchMove={markInteractingBriefly}
-        onPointerDown={markInteractingBriefly}
-        onPointerMove={markInteractingBriefly}
+        onTouchStart={() => {
+          markInteractingBriefly();
+          pauseStripAndResume();
+        }}
+        onTouchMove={() => {
+          markInteractingBriefly();
+          pauseStripAndResume();
+        }}
+        onPointerDown={() => {
+          markInteractingBriefly();
+          pauseStripAndResume();
+        }}
+        onPointerMove={() => {
+          markInteractingBriefly();
+          pauseStripAndResume();
+        }}
       >
-        {mediaItems.map((it, idx) => {
+        {[...mediaItems, ...mediaItems].map((it, rawIdx) => {
+          const idx = mediaItems.length ? rawIdx % mediaItems.length : rawIdx;
           const isActive = idx === activeIndex;
           return (
             <button
-              key={it.id}
+              key={`${it.id}:${rawIdx}`}
               ref={(el) => {
                 if (!el) return;
                 thumbRefs.current.set(it.id, el);
@@ -269,6 +355,40 @@ export function MobileProjectMediaGallery({
           );
         })}
       </div>
+
+      {/* Fullscreen overlay fallback (images + videos) */}
+      {fullscreen ? (
+        <div className="fixed inset-0 z-[80] bg-black/90">
+          <button
+            type="button"
+            className="absolute right-4 top-4 z-10 rounded-full bg-black/40 px-4 py-2 text-sm font-extrabold text-white backdrop-blur"
+            aria-label="Close fullscreen"
+            onClick={() => setFullscreen(null)}
+          >
+            ✕
+          </button>
+
+          <div className="flex h-full w-full items-center justify-center px-3 py-16">
+            {fullscreen.type === "image" ? (
+              <img
+                src={fullscreen.url}
+                alt={title}
+                className="max-h-full max-w-full object-contain"
+                loading="eager"
+                decoding="async"
+              />
+            ) : (
+              <video
+                src={fullscreen.url}
+                controls
+                playsInline
+                preload="metadata"
+                className="max-h-full max-w-full object-contain"
+              />
+            )}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
