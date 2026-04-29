@@ -22,7 +22,8 @@ export function MobileMenu({
   const pathname = usePathname();
 
   const nextLocale = activeLocale === "ar" ? "en" : "ar";
-  const localeLabel = activeLocale === "ar" ? "اللغة العربية" : "English Lang";
+  // Show the OTHER language (switch target) label
+  const localeLabel = activeLocale === "ar" ? "English Lang" : "اللغة العربية";
 
   useEffect(() => {
     if (!open) return;
@@ -42,13 +43,13 @@ export function MobileMenu({
     <div className="md:hidden">
       {/* Fixed yellow bar */}
       <div className="sticky top-0 z-50 bg-amber-100/95 shadow-sm">
-        <div className="relative mx-auto flex max-w-6xl items-center px-4 py-3">
+        <div className="relative mx-auto flex min-h-16 max-w-6xl items-center px-4 py-3">
           {/* Centered logo */}
           <div className="absolute left-1/2 -translate-x-1/2">
             <Logo
               locale={locale}
               logoUrl={logoUrl}
-              imgClassName="h-12 w-auto md:h-14 lg:h-16"
+              imgClassName="h-11 w-auto md:h-14 lg:h-16"
             />
           </div>
 
@@ -88,7 +89,7 @@ export function MobileMenu({
                     href={it.href}
                     locale={locale}
                     onClick={() => setOpen(false)}
-                    className="rounded-xl bg-brand-orange px-4 py-3 text-sm font-extrabold text-white shadow-md shadow-brand-orange/20 transition hover:brightness-110"
+                    className="rounded-xl bg-brand-orange px-4 py-2 text-xs font-extrabold text-white shadow-sm shadow-brand-orange/20 transition hover:brightness-110"
                   >
                     {it.label}
                   </Link>
@@ -100,7 +101,7 @@ export function MobileMenu({
                     setOpen(false);
                     router.replace(pathname, { locale: nextLocale });
                   }}
-                  className="rounded-xl bg-brand-orange px-4 py-3 text-sm font-extrabold text-white shadow-md shadow-brand-orange/20 transition hover:brightness-110"
+                  className="rounded-xl bg-brand-orange px-4 py-2 text-xs font-extrabold text-white shadow-sm shadow-brand-orange/20 transition hover:brightness-110"
                 >
                   {localeLabel}
                 </button>
