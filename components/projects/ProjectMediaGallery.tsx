@@ -46,6 +46,18 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
   const [autoplay, setAutoplay] = useState(true);
   const idxRef = useRef(0);
 
+  // Ensure we always have something selected once media arrives (fixes empty viewer on some mobile hydrations)
+  useEffect(() => {
+    if (selected) return;
+    if (imgs[0]) {
+      setSelected({ kind: "image", src: imgs[0] });
+      return;
+    }
+    if (vids[0]) {
+      setSelected({ kind: "video", src: vids[0] });
+    }
+  }, [imgs, vids, selected]);
+
   useEffect(() => {
     if (!autoplay) return;
     if (imgs.length < 2) return;
@@ -465,6 +477,14 @@ function MobileStrip({
 
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
+  }, [loopItems.length]);
+
+  // Kickstart after layout so scrollWidth is non-zero on mobile
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    // Slight offset avoids some browsers reporting 0 scrollWidth until first scroll
+    el.scrollLeft = 1;
   }, [loopItems.length]);
 
   function pauseAndResume() {
