@@ -49,7 +49,10 @@ export async function Header({ locale }: { locale: string }) {
           <div className="rounded-full bg-brand-orange shadow-md shadow-brand-orange/20">
             <LocaleSwitcher />
           </div>
-          <nav className="flex min-w-0 flex-1 items-center justify-center gap-2 overflow-x-auto px-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <nav
+            dir={locale === "ar" ? "rtl" : "ltr"}
+            className="flex min-w-0 flex-1 items-center justify-center gap-2 overflow-x-auto px-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
             {mobileLinks.map(({ href, label }) => (
               <Link
                 key={href}
