@@ -10,6 +10,7 @@ type Props = { params: Promise<{ locale: string }> };
 export default async function HomePage({ params }: Props) {
   const { locale } = await params;
   const th = await getTranslations("hero");
+  const thome = await getTranslations("home");
   const tp = await getTranslations("projects");
   const hero = await getHeroSettings();
   const boxes = await getValueBoxes();
@@ -72,6 +73,23 @@ export default async function HomePage({ params }: Props) {
           </div>
         </div>
       </section>
+
+      {hero.homeMapUrl ? (
+        <section className="border-t border-brand-navy/10 bg-tg-cream py-12 md:py-16">
+          <div className="mx-auto max-w-6xl px-4 md:px-6">
+            <div className="flex flex-col items-center justify-center gap-4 text-center">
+              <a
+                href={hero.homeMapUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center rounded-full bg-brand-navy px-8 py-3.5 text-base font-bold text-white shadow-lg shadow-brand-navy/20 transition hover:brightness-110"
+              >
+                {thome("mapCta")}
+              </a>
+            </div>
+          </div>
+        </section>
+      ) : null}
     </>
   );
 }

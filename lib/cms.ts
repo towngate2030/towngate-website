@@ -6,6 +6,7 @@ export type Locale = "ar" | "en";
 export type HeroSettings = {
   logoUrl?: string;
   heroBgUrl: string;
+  homeMapUrl?: string;
   kicker: Record<Locale, string>;
   title: Record<Locale, string>;
   subtitle: Record<Locale, string>;
@@ -26,6 +27,7 @@ export async function getHeroSettings(): Promise<HeroSettings> {
   type SiteSettingsDoc = {
     logoUrl?: string;
     heroBgUrl?: string;
+    homeMapUrl?: string;
     kickerAr?: string;
     kickerEn?: string;
     heroTitleAr?: string;
@@ -46,6 +48,7 @@ export async function getHeroSettings(): Promise<HeroSettings> {
     `*[_type=="siteSettings"][0]{
       logoUrl,
       heroBgUrl,
+      homeMapUrl,
       kickerAr,kickerEn,
       heroTitleAr,heroTitleEn,
       heroSubtitleAr,heroSubtitleEn,
@@ -59,6 +62,7 @@ export async function getHeroSettings(): Promise<HeroSettings> {
   return {
     logoUrl: doc.logoUrl || "",
     heroBgUrl: doc.heroBgUrl || "",
+    homeMapUrl: doc.homeMapUrl || "",
     kicker: { ar: doc.kickerAr || seedHero().kicker.ar, en: doc.kickerEn || seedHero().kicker.en },
     title: { ar: doc.heroTitleAr || seedHero().title.ar, en: doc.heroTitleEn || seedHero().title.en },
     subtitle: { ar: doc.heroSubtitleAr || seedHero().subtitle.ar, en: doc.heroSubtitleEn || seedHero().subtitle.en },
@@ -83,6 +87,7 @@ function seedHero(): HeroSettings {
   return {
     logoUrl: "",
     heroBgUrl: "",
+    homeMapUrl: "",
     kicker: { ar: "كمبوند — العاصمة الإدارية", en: "Compound — New Capital" },
     title: {
       ar: "نصمّم أماكن تعيش فيها القصة.",

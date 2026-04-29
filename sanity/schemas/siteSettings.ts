@@ -88,6 +88,14 @@ export const siteSettings = defineType({
       type: "array",
       of: [{ type: "block" }],
     }),
+
+    defineField({
+      name: "homeMapUrl",
+      title: "Home page – Google Maps URL",
+      type: "url",
+      description:
+        "Paste the Google Maps link for the compound/location. A button will appear at the bottom of the home page.",
+    }),
   ],
 });
 
