@@ -194,7 +194,11 @@ export async function getProjectsForSite(): Promise<SiteProject[]> {
 export async function getFeaturedProjectsForSite() {
   const all = await getProjectsForSite();
   const featured = all.filter((p) => p.featured);
-  return featured.length ? featured : (getSeedFeatured() as unknown as SiteProject[]);
+  // If Sanity has projects but none marked featured yet,
+  // show the latest projects instead of falling back to seed data (which can 404).
+  if (featured.length) return featured;
+  if (all.length) return all;
+  return getSeedFeatured() as unknown as SiteProject[];
 }
 
 export async function getProjectBySlugForSite(slug: string) {

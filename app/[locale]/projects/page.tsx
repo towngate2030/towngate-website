@@ -13,7 +13,7 @@ export default async function ProjectsPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 md:px-6 md:py-16">
       <SectionHeading title={t("title")} subtitle={t("subtitle")} />
-      <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-8 grid-cols-1">
         {projects.map((project) => (
           <ProjectCard
             key={project.slug}

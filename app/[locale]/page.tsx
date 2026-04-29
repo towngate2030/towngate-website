@@ -32,7 +32,7 @@ export default async function HomePage({ params }: Props) {
               : "A glimpse of TownGate’s portfolio."
           }
         />
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-8 grid-cols-1">
           {featured.map((project: Project) => (
             <ProjectCard
               key={project.slug}
