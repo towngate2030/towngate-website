@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useLocale } from "next-intl";
 import { Link, usePathname, useRouter } from "@/i18n/routing";
 import { Logo } from "./Logo";
@@ -39,9 +40,6 @@ export function MobileMenu({
     return items;
   }, [items]);
 
-  const menuAlign =
-    activeLocale === "ar" ? "items-end text-right" : "items-start text-left";
-
   return (
     <div className="md:hidden">
       {/* Fixed yellow bar */}
@@ -77,24 +75,31 @@ export function MobileMenu({
       <div className="h-16" />
 
       {/* Dropdown */}
-      {open ? (
-        <div className="fixed inset-0 z-[60]">
-          <button
-            type="button"
-            className="absolute inset-0 bg-black/25"
-            aria-label="Close"
-            onClick={() => setOpen(false)}
-          />
-          <div className="absolute right-3 top-16 w-[min(86vw,320px)] overflow-hidden rounded-2xl border border-brand-navy/10 bg-white shadow-xl">
-            <div className="p-3">
-              <nav className={`flex flex-col gap-2 ${menuAlign}`}>
+      <AnimatePresence>
+        {open ? (
+          <div className="fixed inset-0 z-[60]">
+            <button
+              type="button"
+              className="absolute inset-0 bg-black/45"
+              aria-label="Close"
+              onClick={() => setOpen(false)}
+            />
+
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              className="absolute left-1/2 top-20 w-[min(90vw,320px)] -translate-x-1/2 overflow-hidden rounded-2xl border border-white/10 bg-brand-navy/95 shadow-2xl"
+            >
+              <nav className="divide-y divide-white/10">
                 {ordered.map((it) => (
                   <Link
                     key={it.href}
                     href={it.href}
                     locale={locale}
                     onClick={() => setOpen(false)}
-                    className="inline-flex w-fit rounded-xl bg-brand-orange px-4 py-2 text-xs font-extrabold text-white shadow-sm shadow-brand-orange/20 transition hover:brightness-110"
+                    className="block w-full px-5 py-3 text-center text-sm font-extrabold text-tg-cream transition hover:bg-white/10 active:bg-white/15"
                   >
                     {it.label}
                   </Link>
@@ -106,15 +111,15 @@ export function MobileMenu({
                     setOpen(false);
                     router.replace(pathname, { locale: nextLocale });
                   }}
-                  className="inline-flex w-fit rounded-xl bg-brand-orange px-4 py-2 text-xs font-extrabold text-white shadow-sm shadow-brand-orange/20 transition hover:brightness-110"
+                  className="block w-full px-5 py-3 text-center text-sm font-extrabold text-tg-cream transition hover:bg-white/10 active:bg-white/15"
                 >
                   {localeLabel}
                 </button>
               </nav>
-            </div>
+            </motion.div>
           </div>
-        </div>
-      ) : null}
+        ) : null}
+      </AnimatePresence>
     </div>
   );
 }
