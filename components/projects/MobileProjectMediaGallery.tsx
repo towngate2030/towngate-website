@@ -94,10 +94,11 @@ export function MobileProjectMediaGallery({
   }
 
   // Duplicate the list visually for a seamless moving film strip.
+  const COPY_COUNT = 4;
   const loopItems = useMemo(() => {
     const base = mediaItems;
     if (!base.length) return base;
-    return [...base, ...base, ...base];
+    return Array.from({ length: COPY_COUNT }, () => base).flat();
   }, [mediaItems]);
 
   function pauseStrip() {
@@ -263,7 +264,13 @@ export function MobileProjectMediaGallery({
       >
         <div
           className={`flex w-max gap-2 ${isStripPaused ? "tg-film-paused" : "tg-film"}`}
-          style={{ animationPlayState: isStripPaused ? ("paused" as const) : ("running" as const) }}
+          style={
+            {
+              animationPlayState: isStripPaused ? ("paused" as const) : ("running" as const),
+              // Move by exactly one full copy (25% when COPY_COUNT=4)
+              ["--tg-film-move" as any]: `${100 / COPY_COUNT}%`,
+            } as React.CSSProperties
+          }
         >
           {loopItems.map((it, rawIdx) => {
             const realIndex = mediaItems.length ? rawIdx % mediaItems.length : rawIdx;
@@ -321,17 +328,17 @@ export function MobileProjectMediaGallery({
 
       <style jsx>{`
         .tg-film {
-          animation: tg-film-move 25s linear infinite;
+          animation: tg-film-move 20s linear infinite;
         }
         .tg-film-paused {
-          animation: tg-film-move 25s linear infinite;
+          animation: tg-film-move 20s linear infinite;
         }
         @keyframes tg-film-move {
           from {
             transform: translateX(0);
           }
           to {
-            transform: translateX(-33.333%);
+            transform: translateX(calc(-1 * var(--tg-film-move)));
           }
         }
       `}</style>
