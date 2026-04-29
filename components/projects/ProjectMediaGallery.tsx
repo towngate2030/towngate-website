@@ -49,7 +49,7 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
     const id = window.setInterval(() => {
       idxRef.current = (idxRef.current + 1) % imgs.length;
       setSelected({ kind: "image", src: imgs[idxRef.current] });
-    }, 3500);
+    }, 6500);
     return () => window.clearInterval(id);
   }, [autoplay, imgs]);
 
@@ -123,11 +123,11 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
                 ) : selected.kind === "image" ? (
                   <motion.div
                     key={`img:${selected.src}`}
-                    initial={{ opacity: 0, scale: 1.02 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.995 }}
-                    transition={{ duration: 0.45, ease: "easeOut" }}
-                    className="absolute inset-0"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.6, ease: "easeOut" }}
+                    className="absolute inset-0 will-change-[opacity]"
                   >
                     <Image
                       src={selected.src}
@@ -145,8 +145,8 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.35, ease: "easeOut" }}
-                    className="absolute inset-0 bg-black"
+                    transition={{ duration: 0.45, ease: "easeOut" }}
+                    className="absolute inset-0 bg-black will-change-[opacity]"
                   >
                     <video
                       src={selected.src}
