@@ -48,14 +48,25 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
 
   // Ensure we always have something selected once media arrives (fixes empty viewer on some mobile hydrations)
   useEffect(() => {
-    if (selected) return;
+    const hasAny = Boolean(imgs[0] || vids[0]);
+    if (!hasAny) {
+      if (selected) setSelected(null);
+      return;
+    }
+
+    const stillValid =
+      selected &&
+      (selected.kind === "image"
+        ? imgs.includes(selected.src)
+        : vids.includes(selected.src));
+
+    if (stillValid) return;
+
     if (imgs[0]) {
       setSelected({ kind: "image", src: imgs[0] });
       return;
     }
-    if (vids[0]) {
-      setSelected({ kind: "video", src: vids[0] });
-    }
+    if (vids[0]) setSelected({ kind: "video", src: vids[0] });
   }, [imgs, vids, selected]);
 
   // Always render something if media exists (avoids grey/empty frame before effects run)
@@ -492,8 +503,17 @@ function MobileStrip({
   selected: Selected | null;
   onPick: (s: Selected) => void;
 }) {
-  // Seamless loop using translateX so it never breaks layout/scroll on mobile
-  const doubled = useMemo(() => [...items, ...items], [items]);
+  // Seamless loop using translateX. Repeat enough so the loop is always continuous.
+  const loopItems = useMemo(() => {
+    const base = items.length ? items : [];
+    const min = 16;
+    const out: MobileItem[] = [];
+    if (!base.length) return out;
+    while (out.length < min) out.push(...base);
+    return out;
+  }, [items]);
+
+  const doubled = useMemo(() => [...loopItems, ...loopItems], [loopItems]);
   const wrapWRef = useRef<HTMLDivElement | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
 
@@ -504,6 +524,13 @@ function MobileStrip({
 
   // Pixel speed per second
   const speed = 28;
+
+  // Always start from the beginning when items change (avoids "starting mid-strip")
+  useEffect(() => {
+    xRef.current = 0;
+    const track = trackRef.current;
+    if (track) track.style.transform = "translateX(0px)";
+  }, [loopItems.length]);
 
   useEffect(() => {
     const wrap = wrapWRef.current;
