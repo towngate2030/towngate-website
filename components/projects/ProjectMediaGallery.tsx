@@ -30,13 +30,15 @@ function uniq(items: string[]) {
 export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
   const imgs = useMemo(() => uniq(images), [images]);
   const vids = useMemo(() => uniq(videos).slice(0, 20), [videos]);
-  const mediaHeight = "h-[360px] sm:h-[420px] md:h-[520px] lg:h-[560px]";
+  // Keep all 3 columns aligned. Use a slightly shorter height so videos fill without letterboxing.
+  const mediaHeight = "h-[320px] sm:h-[380px] md:h-[460px] lg:h-[520px]";
 
   const [selected, setSelected] = useState<Selected | null>(() => {
     if (imgs[0]) return { kind: "image", src: imgs[0] };
     if (vids[0]) return { kind: "video", src: vids[0] };
     return null;
   });
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Auto slideshow for images until user selects something.
   const [autoplay, setAutoplay] = useState(true);
@@ -61,6 +63,15 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
   const empty = !selected;
   const sideLabelImages = locale === "ar" ? "صور" : "Images";
   const sideLabelVideos = locale === "ar" ? "فيديو" : "Videos";
+
+  useEffect(() => {
+    if (!isFullscreen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsFullscreen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [isFullscreen]);
 
   return (
     <section className="rounded-3xl border border-brand-navy/10 bg-white p-4 shadow-sm md:p-6">
@@ -146,13 +157,13 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.45, ease: "easeOut" }}
-                    className="absolute inset-0 bg-black will-change-[opacity]"
+                    className="absolute inset-0 bg-black/95 will-change-[opacity]"
                   >
                     <video
                       src={selected.src}
                       controls
                       playsInline
-                      className="h-full w-full object-contain"
+                      className="h-full w-full object-cover"
                     />
                   </motion.div>
                 )}
@@ -170,21 +181,32 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
                   ? "اختر صورة/فيديو"
                   : "Pick an image/video"}
             </p>
-            {imgs.length > 1 ? (
-              <button
-                type="button"
-                onClick={() => setAutoplay((v) => !v)}
-                className="rounded-full border border-brand-navy/15 bg-white px-4 py-2 text-xs font-bold text-brand-navy transition hover:border-brand-orange/40"
-              >
-                {autoplay
-                  ? locale === "ar"
-                    ? "إيقاف العرض"
-                    : "Stop"
-                  : locale === "ar"
-                    ? "تشغيل العرض"
-                    : "Play"}
-              </button>
-            ) : null}
+            <div className="flex items-center gap-2">
+              {selected?.kind === "image" ? (
+                <button
+                  type="button"
+                  onClick={() => setIsFullscreen(true)}
+                  className="rounded-full border border-brand-navy/15 bg-white px-4 py-2 text-xs font-bold text-brand-navy transition hover:border-brand-orange/40"
+                >
+                  {locale === "ar" ? "ملء الشاشة" : "Fullscreen"}
+                </button>
+              ) : null}
+              {imgs.length > 1 ? (
+                <button
+                  type="button"
+                  onClick={() => setAutoplay((v) => !v)}
+                  className="rounded-full border border-brand-navy/15 bg-white px-4 py-2 text-xs font-bold text-brand-navy transition hover:border-brand-orange/40"
+                >
+                  {autoplay
+                    ? locale === "ar"
+                      ? "إيقاف العرض"
+                      : "Stop"
+                    : locale === "ar"
+                      ? "تشغيل العرض"
+                      : "Play"}
+                </button>
+              ) : null}
+            </div>
           </div>
         </div>
 
@@ -219,6 +241,67 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
           </Rail>
         </div>
       </div>
+
+      <AnimatePresence>
+        {isFullscreen && selected?.kind === "image" ? (
+          <motion.div
+            key="fs"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/90"
+          >
+            <button
+              type="button"
+              onClick={() => setIsFullscreen(false)}
+              className="absolute right-4 top-4 rounded-full bg-white/10 px-4 py-2 text-sm font-bold text-white backdrop-blur hover:bg-white/15"
+            >
+              {locale === "ar" ? "إغلاق" : "Close"} (Esc)
+            </button>
+
+            <div className="mx-auto flex h-full max-w-6xl flex-col px-4 py-16">
+              <div className="relative flex-1 overflow-hidden rounded-2xl border border-white/10 bg-black">
+                <Image
+                  src={selected.src}
+                  alt={title}
+                  fill
+                  className="object-contain"
+                  sizes="100vw"
+                  priority
+                />
+              </div>
+
+              {imgs.length ? (
+                <div className="mt-4">
+                  <div className="flex gap-3 overflow-x-auto rounded-2xl border border-white/10 bg-black/30 p-3">
+                    {imgs.map((src) => (
+                      <button
+                        key={src}
+                        type="button"
+                        onClick={() => choose({ kind: "image", src })}
+                        className={`relative h-20 w-28 shrink-0 overflow-hidden rounded-xl border transition ${
+                          src === selected.src
+                            ? "border-brand-orange"
+                            : "border-white/10 hover:border-white/25"
+                        }`}
+                        aria-label="Thumbnail"
+                      >
+                        <Image
+                          src={src}
+                          alt={title}
+                          fill
+                          className="object-cover"
+                          sizes="120px"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </section>
   );
 }
@@ -245,7 +328,9 @@ function Rail({
   const items = Array.isArray(children) ? children : [children];
   const doubled = [...items, ...items];
   const anim =
-    direction === "up" ? "tg-marquee-up 16s linear infinite" : "tg-marquee-down 18s linear infinite";
+    direction === "up"
+      ? "tg-marquee-up 32s linear infinite"
+      : "tg-marquee-down 34s linear infinite";
 
   return (
     <div
