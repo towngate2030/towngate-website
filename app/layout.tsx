@@ -28,6 +28,7 @@ export default async function RootLayout({
 }>) {
   const locale = await getLocale();
   const dir = locale === "ar" ? "rtl" : "ltr";
+  const align = locale === "ar" ? "text-right" : "text-left";
 
   return (
     <html
@@ -35,7 +36,7 @@ export default async function RootLayout({
       dir={dir}
       className={`${cairo.variable} ${poppins.variable} scroll-smooth`}
     >
-      <body className="min-h-screen antialiased">{children}</body>
+      <body className={`min-h-screen antialiased ${align}`}>{children}</body>
     </html>
   );
 }
