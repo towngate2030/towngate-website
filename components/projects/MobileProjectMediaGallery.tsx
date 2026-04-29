@@ -56,13 +56,17 @@ export function MobileProjectMediaGallery({
   const [fullscreen, setFullscreen] = useState<null | { type: "image" | "video"; url: string }>(
     null,
   );
-  const [isStripPaused, setIsStripPaused] = useState(false);
 
   const interactTimer = useRef<number | null>(null);
   const thumbRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const failedIds = useRef<Set<string>>(new Set());
   const stripResumeTimer = useRef<number | null>(null);
+  const stripRef = useRef<HTMLDivElement | null>(null);
+  const firstSetRef = useRef<HTMLDivElement | null>(null);
+  const animationRef = useRef<number | null>(null);
+  const isPausedRef = useRef(false);
+  const [groupCount, setGroupCount] = useState(4);
 
   const activeItem = mediaItems[activeIndex] ?? null;
 
@@ -93,16 +97,8 @@ export function MobileProjectMediaGallery({
     interactTimer.current = window.setTimeout(() => {}, 50);
   }
 
-  // Duplicate the list visually for a seamless moving film strip.
-  const COPY_COUNT = 4;
-  const loopItems = useMemo(() => {
-    const base = mediaItems;
-    if (!base.length) return base;
-    return Array.from({ length: COPY_COUNT }, () => base).flat();
-  }, [mediaItems]);
-
   function pauseStrip() {
-    setIsStripPaused(true);
+    isPausedRef.current = true;
     if (stripResumeTimer.current) window.clearTimeout(stripResumeTimer.current);
     stripResumeTimer.current = null;
   }
@@ -110,9 +106,60 @@ export function MobileProjectMediaGallery({
   function resumeStripAfterDelay() {
     if (stripResumeTimer.current) window.clearTimeout(stripResumeTimer.current);
     stripResumeTimer.current = window.setTimeout(() => {
-      setIsStripPaused(false);
+      isPausedRef.current = false;
     }, 3000);
   }
+
+  // Ensure repeated groups are wide enough (>= 3x viewport width)
+  useEffect(() => {
+    const strip = stripRef.current;
+    const first = firstSetRef.current;
+    if (!strip || !first) return;
+    if (mediaItems.length <= 1) {
+      setGroupCount(1);
+      return;
+    }
+
+    const measure = () => {
+      const firstW = first.offsetWidth;
+      const vw = strip.clientWidth;
+      if (!firstW || !vw) return;
+      const needed = Math.max(4, Math.ceil((vw * 3) / firstW) + 1);
+      setGroupCount(needed);
+    };
+
+    // measure now + after layout
+    measure();
+    const id = window.setTimeout(measure, 0);
+    return () => window.clearTimeout(id);
+  }, [mediaItems]);
+
+  // rAF auto-loop: scrollLeft += speed, and when >= firstSetWidth, subtract it
+  useEffect(() => {
+    const strip = stripRef.current;
+    const first = firstSetRef.current;
+    if (!strip || !first || mediaItems.length <= 1) return;
+
+    const speed = 0.45;
+
+    const animate = () => {
+      if (!isPausedRef.current) {
+        if (!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
+          strip.scrollLeft += speed;
+          const firstSetWidth = first.offsetWidth;
+          if (firstSetWidth > 0 && strip.scrollLeft >= firstSetWidth) {
+            strip.scrollLeft -= firstSetWidth;
+          }
+        }
+      }
+      animationRef.current = requestAnimationFrame(animate);
+    };
+
+    animationRef.current = requestAnimationFrame(animate);
+    return () => {
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+    };
+  }, [mediaItems, groupCount]);
 
   function setActiveFromThumb(idx: number) {
     setActiveIndex(idx);
@@ -234,7 +281,9 @@ export function MobileProjectMediaGallery({
 
       {/* Cinematic strip */}
       <div
-        className="mt-3 w-full overflow-hidden"
+        ref={stripRef}
+        className="mt-3 flex w-full overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        style={{ scrollBehavior: "auto", WebkitOverflowScrolling: "touch" as any }}
         onTouchStart={() => {
           markInteractingBriefly();
           pauseStrip();
@@ -262,86 +311,69 @@ export function MobileProjectMediaGallery({
         onMouseEnter={pauseStrip}
         onMouseLeave={resumeStripAfterDelay}
       >
-        <div
-          className={`flex w-max gap-2 ${isStripPaused ? "tg-film-paused" : "tg-film"}`}
-          style={
-            {
-              animationPlayState: isStripPaused ? ("paused" as const) : ("running" as const),
-              // Move by exactly one full copy (25% when COPY_COUNT=4)
-              ["--tg-film-move" as any]: `${100 / COPY_COUNT}%`,
-            } as React.CSSProperties
-          }
-        >
-          {loopItems.map((it, rawIdx) => {
-            const realIndex = mediaItems.length ? rawIdx % mediaItems.length : rawIdx;
-            const isActive = realIndex === activeIndex;
-            return (
-              <button
-                key={`${it.id}:${rawIdx}`}
-                type="button"
-                onClick={() => setActiveFromThumb(realIndex)}
-                className={`relative h-12 w-[72px] shrink-0 overflow-hidden rounded-[10px] border-2 bg-[#111] ${
-                  isActive
-                    ? "border-brand-orange shadow-sm shadow-brand-orange/25"
-                    : "border-transparent"
-                }`}
-                aria-label={it.type === "video" ? "Video" : "Image"}
-              >
-                {it.type === "image" ? (
-                  <img
-                    src={it.url}
-                    alt={it.alt ?? title}
-                    className="h-full w-full object-cover"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                ) : it.thumbnailUrl ? (
-                  <img
-                    src={it.thumbnailUrl}
-                    alt={it.alt ?? title}
-                    className="h-full w-full object-cover"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                ) : (
-                  <video
-                    src={it.url}
-                    muted
-                    playsInline
-                    preload="metadata"
-                    className="h-full w-full object-cover opacity-90"
-                  />
-                )}
+        <div className="flex w-max gap-2 pe-2">
+          {Array.from({ length: Math.max(1, groupCount) }).map((_, groupIdx) => (
+            <div
+              key={groupIdx}
+              ref={groupIdx === 0 ? firstSetRef : undefined}
+              className="flex gap-2 shrink-0"
+            >
+              {mediaItems.map((it, idx) => {
+                const isActive = idx === activeIndex;
+                const repeatedIndex = groupIdx * mediaItems.length + idx;
+                const realIndex = mediaItems.length ? repeatedIndex % mediaItems.length : idx;
+                return (
+                  <button
+                    key={`${it.id}:${groupIdx}:${idx}`}
+                    type="button"
+                    onClick={() => setActiveFromThumb(realIndex)}
+                    className={`relative h-12 w-[72px] shrink-0 overflow-hidden rounded-[10px] border-2 bg-[#111] ${
+                      isActive
+                        ? "border-brand-orange shadow-sm shadow-brand-orange/25"
+                        : "border-transparent"
+                    }`}
+                    aria-label={it.type === "video" ? "Video" : "Image"}
+                  >
+                    {it.type === "image" ? (
+                      <img
+                        src={it.url}
+                        alt={it.alt ?? title}
+                        className="h-full w-full object-cover"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    ) : it.thumbnailUrl ? (
+                      <img
+                        src={it.thumbnailUrl}
+                        alt={it.alt ?? title}
+                        className="h-full w-full object-cover"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    ) : (
+                      <video
+                        src={it.url}
+                        muted
+                        playsInline
+                        preload="metadata"
+                        className="h-full w-full object-cover opacity-90"
+                      />
+                    )}
 
-                {it.type === "video" ? (
-                  <span className="absolute inset-0 grid place-items-center">
-                    <span className="grid h-6 w-6 place-items-center rounded-full bg-white/90 text-[10px] font-extrabold text-brand-navy">
-                      ▶
-                    </span>
-                  </span>
-                ) : null}
-              </button>
-            );
-          })}
+                    {it.type === "video" ? (
+                      <span className="absolute inset-0 grid place-items-center">
+                        <span className="grid h-6 w-6 place-items-center rounded-full bg-white/90 text-[10px] font-extrabold text-brand-navy">
+                          ▶
+                        </span>
+                      </span>
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
         </div>
       </div>
-
-      <style jsx>{`
-        .tg-film {
-          animation: tg-film-move 20s linear infinite;
-        }
-        .tg-film-paused {
-          animation: tg-film-move 20s linear infinite;
-        }
-        @keyframes tg-film-move {
-          from {
-            transform: translateX(0);
-          }
-          to {
-            transform: translateX(calc(-1 * var(--tg-film-move)));
-          }
-        }
-      `}</style>
 
       {/* Fullscreen overlay fallback (images + videos) */}
       {fullscreen ? (
