@@ -434,6 +434,7 @@ function MobileStrip({
   const xRef = useRef(0); // current translateX (negative = moving left)
   const dragStartX = useRef(0);
   const pointerStartX = useRef(0);
+  const didDrag = useRef(false);
 
   // Pixel speed per second
   const speed = 28;
@@ -471,7 +472,11 @@ function MobileStrip({
     const wrap = wrapWRef.current;
     const track = trackRef.current;
     if (!wrap || !track) return;
+    // If the user tapped a thumb, let the button handle it (no drag capture).
+    const target = e.target as HTMLElement | null;
+    if (target?.closest?.("button")) return;
     setDragging(true);
+    didDrag.current = false;
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     pointerStartX.current = e.clientX;
     dragStartX.current = xRef.current;
@@ -482,6 +487,7 @@ function MobileStrip({
     const track = trackRef.current;
     if (!track) return;
     const dx = e.clientX - pointerStartX.current;
+    if (Math.abs(dx) > 3) didDrag.current = true;
     const half = track.scrollWidth / 2;
     if (!half) return;
     xRef.current = dragStartX.current + dx;
@@ -545,6 +551,7 @@ function MobileThumb({
     <button
       type="button"
       onClick={() => onPick({ kind: item.kind, src: item.src })}
+      onPointerDown={(e) => e.stopPropagation()}
       className={`relative h-12 w-20 shrink-0 overflow-hidden rounded-xl border ${
         isActive ? "border-brand-orange" : "border-brand-navy/10"
       } ${item.kind === "video" ? "bg-black" : "bg-brand-navy/5"}`}
