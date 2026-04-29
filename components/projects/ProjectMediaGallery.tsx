@@ -123,7 +123,7 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
   }, [isFullscreen]);
 
   return (
-    <section className="w-full max-w-full overflow-hidden rounded-3xl border border-brand-navy/10 bg-white p-4 shadow-sm md:p-6">
+    <section className="mx-auto w-full max-w-full overflow-visible rounded-3xl border border-brand-navy/10 bg-white p-4 shadow-sm md:overflow-hidden md:p-6">
       <div className="grid max-w-full gap-4 md:grid-cols-[160px_1fr_160px] md:gap-6">
         {/* Left rail (videos) — moves top -> bottom */}
         <div className="order-2 hidden md:block md:order-1">
@@ -162,7 +162,7 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
         {/* Center viewer */}
         <div className="order-1 md:order-2">
           <div
-            className={`relative w-full max-w-full overflow-hidden rounded-2xl border border-brand-navy/10 bg-brand-navy/5 ${mediaHeight}`}
+            className={`relative mx-auto w-full max-w-full overflow-hidden rounded-2xl border border-brand-navy/10 bg-brand-navy/5 ${mediaHeight}`}
           >
             <div className="relative h-full w-full">
               <AnimatePresence mode="wait">
@@ -187,7 +187,7 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.6, ease: "easeOut" }}
-                    className="absolute inset-0 will-change-[opacity]"
+                    className="absolute inset-0 will-change-[opacity] touch-pan-y select-none"
                     onPointerDown={(e) => {
                       swipeRef.current = { startX: e.clientX, active: true };
                     }}
@@ -229,7 +229,7 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.45, ease: "easeOut" }}
-                    className="absolute inset-0 bg-black/95 will-change-[opacity]"
+                    className="absolute inset-0 bg-black/95 will-change-[opacity] touch-pan-y select-none"
                     onPointerDown={(e) => {
                       swipeRef.current = { startX: e.clientX, active: true };
                     }}
@@ -556,7 +556,7 @@ function MobileStrip({
 
       <div
         ref={scrollerRef}
-        className="flex gap-3 overflow-x-auto p-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]"
+        className="flex snap-x snap-mandatory gap-3 overflow-x-auto p-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         onTouchStart={pauseAndResume}
         onTouchMove={pauseAndResume}
         onPointerDown={pauseAndResume}
@@ -595,7 +595,7 @@ function MobileThumb({
     <button
       type="button"
       onClick={() => onPick({ kind: item.kind, src: item.src })}
-      className={`relative h-12 w-20 shrink-0 overflow-hidden rounded-xl border ${
+      className={`relative h-12 w-20 shrink-0 snap-start overflow-hidden rounded-xl border ${
         isActive ? "border-brand-orange" : "border-brand-navy/10"
       } ${item.kind === "video" ? "bg-black" : "bg-brand-navy/5"}`}
       aria-label={item.kind === "video" ? "Video" : "Image"}
