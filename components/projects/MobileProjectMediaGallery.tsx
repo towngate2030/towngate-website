@@ -63,8 +63,9 @@ export function MobileProjectMediaGallery({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const failedIds = useRef<Set<string>>(new Set());
   const stripRef = useRef<HTMLDivElement | null>(null);
-  const stripPauseRef = useRef(false);
-  const stripResumeTimer = useRef<number | null>(null);
+  const animationRef = useRef<number | null>(null);
+  const isPausedRef = useRef(false);
+  const timeoutRef = useRef<number | null>(null);
 
   const activeItem = mediaItems[activeIndex] ?? null;
 
@@ -124,45 +125,54 @@ export function MobileProjectMediaGallery({
     }, 700);
   }
 
-  function pauseStrip() {
-    stripPauseRef.current = true;
-    if (stripResumeTimer.current) window.clearTimeout(stripResumeTimer.current);
-    stripResumeTimer.current = null;
-  }
+  // Duplicate the list visually for seamless loop.
+  const loopItems = useMemo(() => {
+    const base = mediaItems;
+    if (base.length <= 1) return base;
+    // If content is short, repeat more times to ensure it's wider than the screen.
+    if (base.length < 6) return [...base, ...base, ...base];
+    return [...base, ...base];
+  }, [mediaItems]);
 
-  function resumeStripAfterDelay() {
-    if (stripResumeTimer.current) window.clearTimeout(stripResumeTimer.current);
-    stripResumeTimer.current = window.setTimeout(() => {
-      stripPauseRef.current = false;
-    }, 3000);
-  }
-
-  // Cinematic thumbnail strip auto-loop (continuous)
+  // Auto-scroll with requestAnimationFrame + scrollLeft reset.
   useEffect(() => {
-    const el = stripRef.current;
-    if (!el) return;
+    const strip = stripRef.current;
+    if (!strip || mediaItems.length <= 1) return;
 
-    let raf = 0;
-    // per-frame step (0.4–0.7px) as requested
-    const stepPx = 0.55;
+    const speed = 0.45; // 0.35–0.6 px/frame
 
-    const tick = () => {
-      raf = requestAnimationFrame(tick);
-
-      if (stripPauseRef.current) return;
-      if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
-
-      const half = el.scrollWidth / 2;
-      if (!half || half <= el.clientWidth) return;
-
-      // Move right-to-left feel: content moves left when scrollLeft increases
-      el.scrollLeft += stepPx;
-      if (el.scrollLeft >= half) el.scrollLeft = 0;
+    const animate = () => {
+      if (!isPausedRef.current && strip) {
+        if (!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
+          strip.scrollLeft += speed;
+          const halfScrollWidth = strip.scrollWidth / 2;
+          if (strip.scrollLeft >= halfScrollWidth) {
+            strip.scrollLeft = 0;
+          }
+        }
+      }
+      animationRef.current = requestAnimationFrame(animate);
     };
 
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [mediaItems.length]);
+    animationRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+    };
+  }, [mediaItems]);
+
+  function pauseAutoLoop() {
+    isPausedRef.current = true;
+    if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
+    timeoutRef.current = null;
+  }
+
+  function resumeAutoLoopAfterDelay() {
+    if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
+    timeoutRef.current = window.setTimeout(() => {
+      isPausedRef.current = false;
+    }, 3000);
+  }
 
   function setActiveFromThumb(idx: number) {
     setActiveIndex(idx);
@@ -285,33 +295,40 @@ export function MobileProjectMediaGallery({
       {/* Cinematic strip */}
       <div
         ref={stripRef}
-        className="mt-3 flex w-full gap-2 overflow-x-auto px-1 pb-2 pt-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [scroll-snap-type:x_mandatory]"
+        className="thumbnail-strip mt-3 flex w-full gap-2 overflow-x-auto px-1 pb-2 pt-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        style={{ scrollBehavior: "auto", WebkitOverflowScrolling: "touch" as any }}
         onTouchStart={() => {
           markInteractingBriefly();
-          pauseStrip();
+          pauseAutoLoop();
         }}
         onTouchEnd={() => {
           markInteractingBriefly();
-          resumeStripAfterDelay();
+          resumeAutoLoopAfterDelay();
         }}
         onTouchCancel={() => {
           markInteractingBriefly();
-          resumeStripAfterDelay();
+          resumeAutoLoopAfterDelay();
         }}
         onPointerDown={() => {
           markInteractingBriefly();
-          pauseStrip();
+          pauseAutoLoop();
         }}
         onPointerUp={() => {
           markInteractingBriefly();
-          resumeStripAfterDelay();
+          resumeAutoLoopAfterDelay();
         }}
         onPointerCancel={() => {
           markInteractingBriefly();
-          resumeStripAfterDelay();
+          resumeAutoLoopAfterDelay();
+        }}
+        onMouseEnter={() => {
+          pauseAutoLoop();
+        }}
+        onMouseLeave={() => {
+          resumeAutoLoopAfterDelay();
         }}
       >
-        {[...mediaItems, ...mediaItems].map((it, rawIdx) => {
+        {loopItems.map((it, rawIdx) => {
           const idx = mediaItems.length ? rawIdx % mediaItems.length : rawIdx;
           const isActive = idx === activeIndex;
           return (
@@ -323,7 +340,7 @@ export function MobileProjectMediaGallery({
               }}
               type="button"
               onClick={() => setActiveFromThumb(idx)}
-              className={`relative h-12 w-[72px] shrink-0 overflow-hidden rounded-[10px] border-2 bg-[#111] [scroll-snap-align:start] ${
+              className={`thumbnail-item relative h-12 w-[72px] shrink-0 overflow-hidden rounded-[10px] border-2 bg-[#111] ${
                 isActive
                   ? "border-brand-orange shadow-sm shadow-brand-orange/25"
                   : "border-transparent"
