@@ -122,16 +122,23 @@ export function MobileProjectMediaGallery({
 
     if (!strip || !firstSet || mediaItems.length <= 1) return;
 
-    requestAnimationFrame(() => {
+    const resetToStart = () => {
       strip.scrollLeft = 0;
-      // Some mobile browsers restore previous scroll position after first paint
-      window.setTimeout(() => {
-        if (stripRef.current) stripRef.current.scrollLeft = 0;
-      }, 100);
+    };
 
+    resetToStart();
+
+    requestAnimationFrame(() => {
+      resetToStart();
       requestAnimationFrame(() => {
-        const w = firstSetRef.current?.offsetWidth ?? 0;
-        if (w > 0) setIsStripReady(true);
+        resetToStart();
+        window.setTimeout(() => {
+          resetToStart();
+          const firstSetWidth = firstSet.offsetWidth;
+          if (firstSetWidth > 0) {
+            setIsStripReady(true);
+          }
+        }, 150);
       });
     });
   }, [mediaItems.length]);
@@ -146,22 +153,32 @@ export function MobileProjectMediaGallery({
     const speed = 0.35;
 
     const animate = () => {
-      if (!isPausedRef.current && strip && first) {
-        if (!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
-          strip.scrollLeft += speed;
-          const resetPoint = first.offsetWidth;
-          if (resetPoint > 0 && strip.scrollLeft >= resetPoint) {
-            strip.scrollLeft -= resetPoint;
+      const resetPoint = first.offsetWidth;
+      if (!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
+        if (resetPoint > 0) {
+          // Safety correction if browser starts near the end
+          if (strip.scrollLeft < 0 || strip.scrollLeft >= resetPoint * 2) {
+            strip.scrollLeft = 0;
           }
-          if (process.env.NODE_ENV !== "production") {
-            // eslint-disable-next-line no-console
-            console.log("thumbnail loop", {
-              scrollLeft: strip.scrollLeft,
-              firstSetWidth: resetPoint,
-              mediaCount: mediaItems.length,
-            });
+
+          if (!isPausedRef.current) {
+            strip.scrollLeft += speed;
+            if (strip.scrollLeft >= resetPoint) {
+              strip.scrollLeft -= resetPoint;
+            }
           }
         }
+      }
+
+      if (process.env.NODE_ENV !== "production") {
+        // eslint-disable-next-line no-console
+        console.log("thumbnail startup", {
+          scrollLeft: strip.scrollLeft,
+          firstSetWidth: first.offsetWidth,
+          isPaused: isPausedRef.current,
+          isStripReady,
+          direction: getComputedStyle(strip).direction,
+        });
       }
       frameId = requestAnimationFrame(animate);
       animationRef.current = frameId;
@@ -296,7 +313,8 @@ export function MobileProjectMediaGallery({
       {/* Cinematic strip */}
       <div
         ref={stripRef}
-        className="thumbnailStrip mt-3 flex w-full flex-nowrap overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        dir="ltr"
+        className="thumbnailStrip mt-3 flex w-full flex-nowrap overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [direction:ltr]"
         style={{ scrollBehavior: "auto", WebkitOverflowScrolling: "touch" as any }}
         onTouchStart={pauseAutoScroll}
         onPointerDown={pauseAutoScroll}
@@ -306,7 +324,8 @@ export function MobileProjectMediaGallery({
           <div
             key={groupIndex}
             ref={groupIndex === 0 ? firstSetRef : null}
-            className="thumbnailGroup flex shrink-0 gap-2 pe-2"
+            dir="ltr"
+            className="thumbnailGroup flex shrink-0 gap-2 pe-2 [direction:ltr]"
           >
             {mediaItems.map((it, itemIndex) => {
               const realIndex = itemIndex;
