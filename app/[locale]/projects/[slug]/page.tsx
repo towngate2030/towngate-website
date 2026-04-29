@@ -6,11 +6,9 @@ import { getProjectBySlugForSite } from "@/lib/cms";
 import { getWhatsAppUrl } from "@/lib/whatsapp";
 import { PortableText } from "@portabletext/react";
 import type { PortableTextBlock } from "@portabletext/types";
+import { ProjectMediaGallery } from "@/components/projects/ProjectMediaGallery";
 
-export function generateStaticParams() {
-  // We render on demand; Sanity content can change without rebuilds.
-  return [];
-}
+export const dynamic = "force-dynamic";
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>;
@@ -33,6 +31,7 @@ export default async function ProjectDetailPage({ params }: Props) {
   const wa = getWhatsAppUrl(
     `${tw("prefill")} (${title})`,
   );
+  const allImages = [project.coverImage, ...project.gallery].filter(Boolean);
 
   return (
     <article className="pb-16">
@@ -56,7 +55,7 @@ export default async function ProjectDetailPage({ params }: Props) {
         </div>
       </div>
 
-      <div className="mx-auto max-w-3xl px-4 py-10 md:px-6 md:py-14">
+      <div className="mx-auto max-w-6xl px-4 py-10 md:px-6 md:py-14">
         <Link
           href="/projects"
           locale={locale}
@@ -64,38 +63,19 @@ export default async function ProjectDetailPage({ params }: Props) {
         >
           ← {t("back")}
         </Link>
+
+        <div className="mt-8">
+          <ProjectMediaGallery
+            locale={locale as "ar" | "en"}
+            title={title}
+            images={allImages}
+            videos={p.videoUrls || []}
+          />
+        </div>
+
         <div className="prose prose-lg mt-6 max-w-none text-brand-navy/90">
           <PortableText value={bodyPortable} />
         </div>
-
-        {project.gallery.length > 0 ? (
-          <div className="mt-10 grid gap-4 sm:grid-cols-2">
-            {project.gallery.map((src, i) => (
-              <div
-                key={src}
-                className="relative aspect-video overflow-hidden rounded-xl"
-              >
-                <Image
-                  src={src}
-                  alt={`${title} ${i + 1}`}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width:768px) 100vw, 400px"
-                />
-              </div>
-            ))}
-          </div>
-        ) : null}
-
-        {p.videoUrls?.length ? (
-          <div className="mt-10 space-y-4">
-            {p.videoUrls.slice(0, 2).map((v) => (
-              <div key={v} className="overflow-hidden rounded-2xl border border-brand-navy/10 bg-black">
-                <video src={v} controls className="h-auto w-full" />
-              </div>
-            ))}
-          </div>
-        ) : null}
 
         <div className="mt-12 flex flex-wrap gap-4">
           <a

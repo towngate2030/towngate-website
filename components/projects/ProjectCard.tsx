@@ -22,7 +22,7 @@ export function ProjectCard({ project, locale, labels }: Props) {
           src={project.coverImage}
           alt={title}
           fill
-          className="object-cover transition duration-500 group-hover:scale-105"
+          className="object-contain bg-brand-navy/5 transition duration-500 group-hover:scale-[1.02]"
           sizes="(max-width:768px) 100vw, 33vw"
         />
         <span
