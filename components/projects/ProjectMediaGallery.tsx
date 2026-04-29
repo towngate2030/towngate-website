@@ -15,8 +15,6 @@ type Selected =
   | { kind: "image"; src: string }
   | { kind: "video"; src: string };
 
-type MobileItem = Selected & { key: string };
-
 function uniq(items: string[]) {
   const seen = new Set<string>();
   const out: string[] = [];
@@ -108,33 +106,6 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
   const sideLabelImages = locale === "ar" ? "صور" : "Images";
   const sideLabelVideos = locale === "ar" ? "فيديو" : "Videos";
 
-  const mobileItems = useMemo<MobileItem[]>(() => {
-    const items: MobileItem[] = [];
-    for (const src of imgs) items.push({ kind: "image", src, key: `i:${src}` });
-    for (const src of vids) items.push({ kind: "video", src, key: `v:${src}` });
-    return items;
-  }, [imgs, vids]);
-
-  // Mobile swipe between media in the main frame
-  const swipeRef = useRef<{
-    startX: number;
-    active: boolean;
-  }>({ startX: 0, active: false });
-
-  const effectiveIndex = useMemo(() => {
-    if (!effectiveSelected) return -1;
-    return mobileItems.findIndex(
-      (it) => it.kind === effectiveSelected.kind && it.src === effectiveSelected.src,
-    );
-  }, [effectiveSelected, mobileItems]);
-
-  function stepMobile(delta: -1 | 1) {
-    if (!mobileItems.length) return;
-    const cur = effectiveIndex >= 0 ? effectiveIndex : 0;
-    const next = (cur + delta + mobileItems.length) % mobileItems.length;
-    choose({ kind: mobileItems[next].kind, src: mobileItems[next].src });
-  }
-
   useEffect(() => {
     if (!isFullscreen) return;
     const onKeyDown = (e: KeyboardEvent) => {
@@ -145,8 +116,19 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
   }, [isFullscreen]);
 
   return (
-    <section className="mx-auto w-full max-w-full overflow-hidden rounded-3xl border border-brand-navy/10 bg-white p-4 shadow-sm md:p-6">
-      <div className="grid max-w-full gap-4 md:grid-cols-[160px_1fr_160px] md:gap-6">
+    <>
+      {/* Mobile: disable gallery completely */}
+      <section className="mx-auto w-full max-w-full rounded-3xl border border-brand-navy/10 bg-white p-4 shadow-sm md:hidden">
+        <p className="text-center text-sm font-semibold text-brand-navy/70">
+          {locale === "ar"
+            ? "عرض الصور والفيديوهات متاح على شاشة الكمبيوتر."
+            : "Images and videos are available on desktop."}
+        </p>
+      </section>
+
+      {/* Desktop gallery */}
+      <section className="mx-auto hidden w-full max-w-full overflow-hidden rounded-3xl border border-brand-navy/10 bg-white p-4 shadow-sm md:block md:p-6">
+        <div className="grid max-w-full gap-4 md:grid-cols-[160px_1fr_160px] md:gap-6">
         {/* Left rail (videos) — moves top -> bottom */}
         <div className="order-2 hidden md:block md:order-1">
           <p className="mb-3 text-xs font-bold uppercase tracking-wide text-brand-navy/60">
@@ -209,28 +191,15 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.6, ease: "easeOut" }}
-                    className="absolute inset-0 will-change-[opacity] touch-pan-y select-none"
-                    onPointerDown={(e) => {
-                      swipeRef.current = { startX: e.clientX, active: true };
-                    }}
-                    onPointerUp={(e) => {
-                      if (!swipeRef.current.active) return;
-                      swipeRef.current.active = false;
-                      const dx = e.clientX - swipeRef.current.startX;
-                      if (Math.abs(dx) < 40) return;
-                      stepMobile(dx < 0 ? 1 : -1);
-                    }}
-                    onPointerCancel={() => {
-                      swipeRef.current.active = false;
-                    }}
+                    className="absolute inset-0 will-change-[opacity]"
                   >
-                    {/* Use plain img for maximum compatibility across devices */}
-                    <img
+                    <Image
                       src={effectiveSelected.src}
                       alt={title}
-                      className="absolute inset-0 h-full w-full object-contain"
-                      loading="eager"
-                      decoding="async"
+                      fill
+                      className="object-contain"
+                      sizes="(max-width:768px) 100vw, 60vw"
+                      priority
                     />
                   </motion.div>
                 ) : (
@@ -240,27 +209,13 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.45, ease: "easeOut" }}
-                    className="absolute inset-0 bg-black/95 will-change-[opacity] touch-pan-y select-none"
-                    onPointerDown={(e) => {
-                      swipeRef.current = { startX: e.clientX, active: true };
-                    }}
-                    onPointerUp={(e) => {
-                      if (!swipeRef.current.active) return;
-                      swipeRef.current.active = false;
-                      const dx = e.clientX - swipeRef.current.startX;
-                      if (Math.abs(dx) < 40) return;
-                      stepMobile(dx < 0 ? 1 : -1);
-                    }}
-                    onPointerCancel={() => {
-                      swipeRef.current.active = false;
-                    }}
+                    className="absolute inset-0 bg-black/95 will-change-[opacity]"
                   >
                     <video
                       src={effectiveSelected.src}
                       controls
                       playsInline
-                      preload="metadata"
-                      className="h-full w-full object-contain"
+                      className="h-full w-full object-cover"
                     />
                   </motion.div>
                 )}
@@ -306,26 +261,6 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
             </div>
           </div>
 
-          {/* Mobile single cinematic strip (images + videos) */}
-          <div className="mt-4 md:hidden">
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-brand-navy/60">
-              {sideLabelImages} / {sideLabelVideos}
-            </p>
-            {mobileItems.length ? (
-              <MobileStrip
-                items={mobileItems}
-                title={title}
-                selected={effectiveSelected}
-                onPick={choose}
-              />
-            ) : (
-              <div className="text-xs font-semibold text-brand-navy/60">
-                {locale === "ar"
-                  ? "لا توجد صور أو فيديوهات"
-                  : "No images or videos"}
-              </div>
-            )}
-          </div>
         </div>
 
         {/* Right rail (images) — moves bottom -> top */}
@@ -358,10 +293,10 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
             )}
           </Rail>
         </div>
-      </div>
+        </div>
 
-      <AnimatePresence>
-        {isFullscreen && effectiveSelected?.kind === "image" ? (
+        <AnimatePresence>
+          {isFullscreen && effectiveSelected?.kind === "image" ? (
           <motion.div
             key="fs"
             initial={{ opacity: 0 }}
@@ -418,9 +353,10 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
               ) : null}
             </div>
           </motion.div>
-        ) : null}
-      </AnimatePresence>
-    </section>
+          ) : null}
+        </AnimatePresence>
+      </section>
+    </>
   );
 }
 
@@ -490,176 +426,6 @@ function Rail({
         }
       `}</style>
     </div>
-  );
-}
-
-function MobileStrip({
-  items,
-  title,
-  selected,
-  onPick,
-}: {
-  items: MobileItem[];
-  title: string;
-  selected: Selected | null;
-  onPick: (s: Selected) => void;
-}) {
-  // Seamless loop using translateX. Repeat enough so the loop is always continuous.
-  const loopItems = useMemo(() => {
-    const base = items.length ? items : [];
-    const min = 16;
-    const out: MobileItem[] = [];
-    if (!base.length) return out;
-    while (out.length < min) out.push(...base);
-    return out;
-  }, [items]);
-
-  const doubled = useMemo(() => [...loopItems, ...loopItems], [loopItems]);
-  const wrapWRef = useRef<HTMLDivElement | null>(null);
-  const trackRef = useRef<HTMLDivElement | null>(null);
-
-  const [dragging, setDragging] = useState(false);
-  const xRef = useRef(0); // current translateX (negative = moving left)
-  const dragStartX = useRef(0);
-  const pointerStartX = useRef(0);
-
-  // Pixel speed per second
-  const speed = 28;
-
-  // Always start from the beginning when items change (avoids "starting mid-strip")
-  useEffect(() => {
-    xRef.current = 0;
-    const track = trackRef.current;
-    if (track) track.style.transform = "translateX(0px)";
-  }, [loopItems.length]);
-
-  useEffect(() => {
-    const wrap = wrapWRef.current;
-    const track = trackRef.current;
-    if (!wrap || !track) return;
-
-    let raf = 0;
-    let last = performance.now();
-
-    const tick = (now: number) => {
-      raf = requestAnimationFrame(tick);
-      const dt = (now - last) / 1000;
-      last = now;
-
-      if (dragging) return;
-      if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
-
-      const half = track.scrollWidth / 2;
-      if (!half) return;
-
-      xRef.current -= speed * dt;
-      if (xRef.current <= -half) xRef.current += half;
-      track.style.transform = `translateX(${xRef.current}px)`;
-    };
-
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [dragging]);
-
-  function onPointerDown(e: React.PointerEvent) {
-    const wrap = wrapWRef.current;
-    const track = trackRef.current;
-    if (!wrap || !track) return;
-    setDragging(true);
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    pointerStartX.current = e.clientX;
-    dragStartX.current = xRef.current;
-  }
-
-  function onPointerMove(e: React.PointerEvent) {
-    if (!dragging) return;
-    const track = trackRef.current;
-    if (!track) return;
-    const dx = e.clientX - pointerStartX.current;
-    const half = track.scrollWidth / 2;
-    if (!half) return;
-    xRef.current = dragStartX.current + dx;
-    while (xRef.current > 0) xRef.current -= half;
-    while (xRef.current <= -half) xRef.current += half;
-    track.style.transform = `translateX(${xRef.current}px)`;
-  }
-
-  function onPointerUp() {
-    setDragging(false);
-  }
-
-  return (
-    <div
-      ref={wrapWRef}
-      className="relative w-full max-w-full touch-pan-y overflow-hidden rounded-2xl border border-brand-navy/10 bg-white"
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerCancel={onPointerUp}
-    >
-      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-white to-transparent" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-white to-transparent" />
-
-      <div className="relative overflow-hidden p-2 [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
-        <motion.div
-          ref={trackRef}
-          className="flex w-max gap-2 will-change-transform"
-          style={{ transform: `translateX(${xRef.current}px)` }}
-        >
-          {doubled.map((it, idx) => (
-            <MobileThumb
-              key={`${it.key}:${idx}`}
-              item={it}
-              title={title}
-              selected={selected}
-              onPick={onPick}
-            />
-          ))}
-        </motion.div>
-        <div className="h-12" />
-      </div>
-    </div>
-  );
-}
-
-function MobileThumb({
-  item,
-  title,
-  selected,
-  onPick,
-}: {
-  item: MobileItem;
-  title: string;
-  selected: Selected | null;
-  onPick: (s: Selected) => void;
-}) {
-  const isActive = selected?.kind === item.kind && selected?.src === item.src;
-  return (
-    <button
-      type="button"
-      onClick={() => onPick({ kind: item.kind, src: item.src })}
-      className={`relative h-12 w-20 shrink-0 overflow-hidden rounded-xl border ${
-        isActive ? "border-brand-orange" : "border-brand-navy/10"
-      } ${item.kind === "video" ? "bg-black" : "bg-brand-navy/5"}`}
-      aria-label={item.kind === "video" ? "Video" : "Image"}
-    >
-      {item.kind === "image" ? (
-        <Image src={item.src} alt={title} fill className="object-cover" sizes="120px" />
-      ) : (
-        <>
-          <video
-            src={item.src}
-            muted
-            playsInline
-            preload="metadata"
-            className="h-full w-full object-cover opacity-90"
-          />
-          <div className="absolute bottom-2 left-2 rounded-full bg-white/90 px-2 py-1 text-[10px] font-bold text-brand-navy">
-            ▶
-          </div>
-        </>
-      )}
-    </button>
   );
 }
 
