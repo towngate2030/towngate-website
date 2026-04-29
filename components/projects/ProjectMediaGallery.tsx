@@ -426,68 +426,105 @@ function MobileStrip({
   selected: Selected | null;
   onPick: (s: Selected) => void;
 }) {
+  const doubled = useMemo(() => [...items, ...items], [items]);
+  const wrapWRef = useRef<HTMLDivElement | null>(null);
+  const trackRef = useRef<HTMLDivElement | null>(null);
+
+  const [dragging, setDragging] = useState(false);
+  const xRef = useRef(0); // current translateX (negative = moving left)
+  const dragStartX = useRef(0);
+  const pointerStartX = useRef(0);
+
+  // Pixel speed per second
+  const speed = 28;
+
+  useEffect(() => {
+    const wrap = wrapWRef.current;
+    const track = trackRef.current;
+    if (!wrap || !track) return;
+
+    let raf = 0;
+    let last = performance.now();
+
+    const tick = (now: number) => {
+      raf = requestAnimationFrame(tick);
+      const dt = (now - last) / 1000;
+      last = now;
+
+      if (dragging) return;
+      if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
+
+      const half = track.scrollWidth / 2;
+      if (!half) return;
+
+      xRef.current -= speed * dt;
+      // wrap seamlessly
+      if (xRef.current <= -half) xRef.current += half;
+      track.style.transform = `translateX(${xRef.current}px)`;
+    };
+
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [dragging, speed]);
+
+  function onPointerDown(e: React.PointerEvent) {
+    const wrap = wrapWRef.current;
+    const track = trackRef.current;
+    if (!wrap || !track) return;
+    setDragging(true);
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    pointerStartX.current = e.clientX;
+    dragStartX.current = xRef.current;
+  }
+
+  function onPointerMove(e: React.PointerEvent) {
+    if (!dragging) return;
+    const track = trackRef.current;
+    if (!track) return;
+    const dx = e.clientX - pointerStartX.current;
+    const half = track.scrollWidth / 2;
+    if (!half) return;
+    xRef.current = dragStartX.current + dx;
+    // keep bounded to avoid huge numbers
+    while (xRef.current > 0) xRef.current -= half;
+    while (xRef.current <= -half) xRef.current += half;
+    track.style.transform = `translateX(${xRef.current}px)`;
+  }
+
+  function onPointerUp() {
+    setDragging(false);
+  }
+
   return (
-    <div className="relative max-w-full overflow-hidden rounded-2xl border border-brand-navy/10 bg-white">
+    <div
+      ref={wrapWRef}
+      className="relative max-w-full touch-pan-y overflow-hidden rounded-2xl border border-brand-navy/10 bg-white"
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+    >
       <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-white to-transparent" />
       <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-white to-transparent" />
 
-      {/* Two identical tracks for a seamless loop */}
       <div className="relative overflow-hidden p-3 [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
-        <div
-          className="absolute left-0 top-0 flex w-max gap-3"
-          style={{ animation: "tg-marquee-track 26s linear infinite" }}
+        <motion.div
+          ref={trackRef}
+          className="flex w-max gap-3 will-change-transform"
+          style={{ transform: `translateX(${xRef.current}px)` }}
         >
-          {items.map((it) => (
+          {doubled.map((it, idx) => (
             <MobileThumb
-              key={it.key}
+              key={`${it.key}:${idx}`}
               item={it}
               title={title}
               selected={selected}
               onPick={onPick}
             />
           ))}
-        </div>
-        <div
-          className="absolute left-0 top-0 flex w-max gap-3"
-          style={{ animation: "tg-marquee-track2 26s linear infinite" }}
-        >
-          {items.map((it) => (
-            <MobileThumb
-              key={`${it.key}:2`}
-              item={it}
-              title={title}
-              selected={selected}
-              onPick={onPick}
-            />
-          ))}
-        </div>
-        {/* Spacer to give the container height */}
+        </motion.div>
         <div className="h-14" />
       </div>
-
-      <style jsx>{`
-        @keyframes tg-marquee-track {
-          from {
-            transform: translateX(0);
-          }
-          to {
-            transform: translateX(-100%);
-          }
-        }
-        @keyframes tg-marquee-track2 {
-          from {
-            transform: translateX(100%);
-          }
-          to {
-            transform: translateX(0);
-          }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          div[style*='tg-marquee-track'] {
-            animation: none !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }
