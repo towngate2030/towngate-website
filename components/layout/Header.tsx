@@ -16,7 +16,7 @@ export async function Header({ locale }: { locale: string }) {
   ] as const;
 
   return (
-    <header className="sticky top-0 z-50 bg-brand-navy/85 md:absolute md:inset-x-0 md:top-0 md:bg-transparent">
+    <header className="sticky top-0 z-50 bg-slate-900/70 md:absolute md:inset-x-0 md:top-0 md:bg-transparent">
       {/* Desktop row */}
       <div className="mx-auto hidden max-w-6xl items-center justify-between gap-3 px-4 py-2 md:flex md:px-6 md:py-3">
         <Logo locale={locale} logoUrl={hero.logoUrl || undefined} />

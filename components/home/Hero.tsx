@@ -32,21 +32,7 @@ export function Hero({ locale, bgUrl, logoUrl, kicker, title, subtitle, primaryC
         />
       ) : null}
 
-      <div className="relative mx-auto max-w-6xl px-4 py-14 md:px-6 md:py-24 md:pt-24">
-        {logoUrl ? (
-          <div className="mb-6 flex items-center justify-start md:hidden">
-            <div className="relative h-16 w-56 sm:h-20 sm:w-64">
-              <Image
-                src={logoUrl}
-                alt="TownGate"
-                fill
-                className="object-contain"
-                sizes="(max-width:768px) 260px, 320px"
-                priority
-              />
-            </div>
-          </div>
-        ) : null}
+      <div className="relative mx-auto max-w-6xl px-4 py-10 md:px-6 md:py-24 md:pt-24">
         <motion.p
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
