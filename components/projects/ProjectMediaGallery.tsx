@@ -41,6 +41,7 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
     return null;
   });
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const userPickedRef = useRef(false);
 
   // Auto slideshow for images until user selects something.
   const [autoplay, setAutoplay] = useState(true);
@@ -51,6 +52,15 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
     const hasAny = Boolean(imgs[0] || vids[0]);
     if (!hasAny) {
       if (selected) setSelected(null);
+      return;
+    }
+
+    // If the user hasn't picked yet, always prefer the first image once available.
+    // This prevents landing on a video (black frame) just because videos existed earlier.
+    if (!userPickedRef.current && imgs[0]) {
+      if (selected?.kind !== "image" || selected.src !== imgs[0]) {
+        setSelected({ kind: "image", src: imgs[0] });
+      }
       return;
     }
 
@@ -89,6 +99,7 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
   }, [autoplay, imgs]);
 
   function choose(sel: Selected) {
+    userPickedRef.current = true;
     setAutoplay(false);
     setSelected(sel);
   }
