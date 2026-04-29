@@ -124,8 +124,13 @@ export function MobileProjectMediaGallery({
     }, 700);
   }
 
-  function pauseStripAndResume() {
+  function pauseStrip() {
     stripPauseRef.current = true;
+    if (stripResumeTimer.current) window.clearTimeout(stripResumeTimer.current);
+    stripResumeTimer.current = null;
+  }
+
+  function resumeStripAfterDelay() {
     if (stripResumeTimer.current) window.clearTimeout(stripResumeTimer.current);
     stripResumeTimer.current = window.setTimeout(() => {
       stripPauseRef.current = false;
@@ -138,22 +143,21 @@ export function MobileProjectMediaGallery({
     if (!el) return;
 
     let raf = 0;
-    let last = performance.now();
-    const pxPerSec = 18; // slow + cinematic
+    // per-frame step (0.4–0.7px) as requested
+    const stepPx = 0.55;
 
-    const tick = (now: number) => {
+    const tick = () => {
       raf = requestAnimationFrame(tick);
-      const dt = (now - last) / 1000;
-      last = now;
 
       if (stripPauseRef.current) return;
       if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
 
       const half = el.scrollWidth / 2;
-      if (!half) return;
+      if (!half || half <= el.clientWidth) return;
 
-      el.scrollLeft += pxPerSec * dt;
-      if (el.scrollLeft >= half) el.scrollLeft -= half;
+      // Move right-to-left feel: content moves left when scrollLeft increases
+      el.scrollLeft += stepPx;
+      if (el.scrollLeft >= half) el.scrollLeft = 0;
     };
 
     raf = requestAnimationFrame(tick);
@@ -284,19 +288,27 @@ export function MobileProjectMediaGallery({
         className="mt-3 flex w-full gap-2 overflow-x-auto px-1 pb-2 pt-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [scroll-snap-type:x_mandatory]"
         onTouchStart={() => {
           markInteractingBriefly();
-          pauseStripAndResume();
+          pauseStrip();
         }}
-        onTouchMove={() => {
+        onTouchEnd={() => {
           markInteractingBriefly();
-          pauseStripAndResume();
+          resumeStripAfterDelay();
+        }}
+        onTouchCancel={() => {
+          markInteractingBriefly();
+          resumeStripAfterDelay();
         }}
         onPointerDown={() => {
           markInteractingBriefly();
-          pauseStripAndResume();
+          pauseStrip();
         }}
-        onPointerMove={() => {
+        onPointerUp={() => {
           markInteractingBriefly();
-          pauseStripAndResume();
+          resumeStripAfterDelay();
+        }}
+        onPointerCancel={() => {
+          markInteractingBriefly();
+          resumeStripAfterDelay();
         }}
       >
         {[...mediaItems, ...mediaItems].map((it, rawIdx) => {
