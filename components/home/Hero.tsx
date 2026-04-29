@@ -35,13 +35,13 @@ export function Hero({ locale, bgUrl, logoUrl, kicker, title, subtitle, primaryC
       <div className="relative mx-auto max-w-6xl px-4 py-20 md:px-6 md:py-28">
         {logoUrl ? (
           <div className="mb-6 flex items-center justify-start">
-            <div className="relative h-12 w-40 md:h-14 md:w-48">
+            <div className="relative h-16 w-56 sm:h-20 sm:w-64 md:h-24 md:w-80">
               <Image
                 src={logoUrl}
                 alt="TownGate"
                 fill
                 className="object-contain"
-                sizes="200px"
+                sizes="(max-width:768px) 260px, 320px"
                 priority
               />
             </div>
