@@ -18,7 +18,7 @@ export async function Header({ locale }: { locale: string }) {
   const mobileLinks = links.filter((l) => l.href !== "/contact");
 
   const navBtn =
-    "rounded-full bg-brand-orange px-4 py-2 text-xs font-extrabold text-white shadow-md shadow-brand-orange/20 transition hover:brightness-110";
+    "inline-flex h-10 items-center justify-center whitespace-nowrap rounded-full bg-brand-orange px-5 text-xs font-extrabold leading-none text-white shadow-md shadow-brand-orange/20 transition hover:brightness-110";
 
   return (
     <header className="sticky top-0 z-50 bg-amber-100/95 shadow-sm md:absolute md:inset-x-0 md:top-0 md:bg-transparent md:shadow-none">
@@ -44,27 +44,24 @@ export async function Header({ locale }: { locale: string }) {
         </div>
       </div>
       {/* Mobile: single row, one logo only */}
-      <div className="mx-auto max-w-6xl px-4 pb-3 md:hidden">
-        <div className="flex items-center gap-2 py-2">
-          <div className="rounded-full bg-brand-orange shadow-md shadow-brand-orange/20">
+      <div className="mx-auto max-w-6xl px-4 py-3 md:hidden">
+        <div className="flex min-h-12 items-center gap-3">
+          <div className="shrink-0 rounded-full bg-brand-orange shadow-md shadow-brand-orange/20">
             <LocaleSwitcher />
           </div>
+
           <nav
             dir={locale === "ar" ? "rtl" : "ltr"}
-            className="flex min-w-0 flex-1 items-center justify-center gap-2 overflow-x-auto px-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="flex min-w-0 flex-1 items-center gap-3 overflow-x-auto px-2 py-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             {mobileLinks.map(({ href, label }) => (
-              <Link
-                key={href}
-                href={href}
-                locale={locale}
-                className={`shrink-0 ${navBtn}`}
-              >
+              <Link key={href} href={href} locale={locale} className={navBtn}>
                 {label}
               </Link>
             ))}
           </nav>
-          <div className="shrink-0 ms-auto">
+
+          <div className="shrink-0">
             <Logo locale={locale} logoUrl={hero.logoUrl || undefined} />
           </div>
         </div>
