@@ -4,9 +4,11 @@ import { Link } from "@/i18n/routing";
 export function Logo({
   locale,
   logoUrl,
+  imgClassName,
 }: {
   locale: string;
   logoUrl?: string;
+  imgClassName?: string;
 }) {
   return (
     <Link href="/" className="flex items-center gap-2 shrink-0" locale={locale}>
@@ -16,7 +18,7 @@ export function Logo({
           alt="TownGate"
           width={220}
           height={64}
-          className="h-10 w-auto md:h-14 lg:h-16"
+          className={imgClassName ?? "h-10 w-auto md:h-14 lg:h-16"}
           priority
         />
       ) : (
@@ -25,7 +27,7 @@ export function Logo({
           alt="TownGate"
           width={160}
           height={40}
-          className="h-9 w-auto"
+          className={imgClassName ?? "h-9 w-auto"}
           priority
         />
       )}

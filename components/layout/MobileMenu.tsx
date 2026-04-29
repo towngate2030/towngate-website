@@ -22,7 +22,7 @@ export function MobileMenu({
   const pathname = usePathname();
 
   const nextLocale = activeLocale === "ar" ? "en" : "ar";
-  const localeLabel = activeLocale === "ar" ? "EN" : "AR";
+  const localeLabel = activeLocale === "ar" ? "اللغة العربية" : "English Lang";
 
   useEffect(() => {
     if (!open) return;
@@ -42,9 +42,18 @@ export function MobileMenu({
     <div className="md:hidden">
       {/* Fixed yellow bar */}
       <div className="sticky top-0 z-50 bg-amber-100/95 shadow-sm">
-        <div className="mx-auto flex max-w-6xl items-center px-4 py-3">
-          {/* Hamburger on the right */}
-          <div className="ms-auto flex items-center gap-3">
+        <div className="relative mx-auto flex max-w-6xl items-center px-4 py-3">
+          {/* Centered logo */}
+          <div className="absolute left-1/2 -translate-x-1/2">
+            <Logo
+              locale={locale}
+              logoUrl={logoUrl}
+              imgClassName="h-12 w-auto md:h-14 lg:h-16"
+            />
+          </div>
+
+          {/* Hamburger (always on the RIGHT) */}
+          <div className="absolute right-4 top-1/2 -translate-y-1/2">
             <button
               type="button"
               onClick={() => setOpen((v) => !v)}
@@ -57,11 +66,6 @@ export function MobileMenu({
                 <span className="h-0.5 w-5 rounded bg-white" />
               </span>
             </button>
-          </div>
-
-          {/* Centered logo */}
-          <div className="absolute left-1/2 -translate-x-1/2">
-            <Logo locale={locale} logoUrl={logoUrl} />
           </div>
         </div>
       </div>
@@ -96,7 +100,7 @@ export function MobileMenu({
                     setOpen(false);
                     router.replace(pathname, { locale: nextLocale });
                   }}
-                  className="rounded-xl border border-brand-navy/10 bg-tg-cream px-4 py-3 text-sm font-extrabold text-brand-navy transition hover:border-brand-orange/40"
+                  className="rounded-xl bg-brand-orange px-4 py-3 text-sm font-extrabold text-white shadow-md shadow-brand-orange/20 transition hover:brightness-110"
                 >
                   {localeLabel}
                 </button>
