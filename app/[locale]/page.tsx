@@ -9,19 +9,24 @@ type Props = { params: Promise<{ locale: string }> };
 
 export default async function HomePage({ params }: Props) {
   const { locale } = await params;
+  const th = await getTranslations("hero");
   const tp = await getTranslations("projects");
   const hero = await getHeroSettings();
   const boxes = await getValueBoxes();
   const featured = await getFeaturedProjectsForSite();
+  const first = featured?.[0];
+  const detailsHref = first ? `/projects/${first.slug}` : "/projects";
 
   return (
     <>
       <Hero
         locale={locale}
         bgUrl={hero.heroBgUrl || undefined}
+        logoUrl={hero.logoUrl || undefined}
         kicker={hero.kicker[locale as "ar" | "en"]}
         title={hero.title[locale as "ar" | "en"]}
         subtitle={hero.subtitle[locale as "ar" | "en"]}
+        primaryCta={{ href: detailsHref, label: th("ctaProjects") }}
       />
       <section className="mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-20">
         <SectionHeading

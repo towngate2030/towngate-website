@@ -6,6 +6,12 @@ export const siteSettings = defineType({
   type: "document",
   fields: [
     defineField({
+      name: "logoUrl",
+      title: "Logo URL (Cloudinary)",
+      type: "url",
+      description: "Upload your logo to Cloudinary and paste the direct URL here.",
+    }),
+    defineField({
       name: "heroBgUrl",
       title: "Hero background URL (Cloudinary)",
       type: "url",

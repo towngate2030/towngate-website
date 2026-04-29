@@ -2,16 +2,19 @@
 
 import { motion } from "framer-motion";
 import { Link } from "@/i18n/routing";
+import Image from "next/image";
 
 type Props = {
   locale: string;
   bgUrl?: string;
+  logoUrl?: string;
   kicker: string;
   title: string;
   subtitle: string;
+  primaryCta: { href: string; label: string };
 };
 
-export function Hero({ locale, bgUrl, kicker, title, subtitle }: Props) {
+export function Hero({ locale, bgUrl, logoUrl, kicker, title, subtitle, primaryCta }: Props) {
 
   return (
     <section className="relative overflow-hidden bg-brand-navy text-tg-cream">
@@ -30,6 +33,20 @@ export function Hero({ locale, bgUrl, kicker, title, subtitle }: Props) {
       ) : null}
 
       <div className="relative mx-auto max-w-6xl px-4 py-20 md:px-6 md:py-28">
+        {logoUrl ? (
+          <div className="mb-6 flex items-center justify-start">
+            <div className="relative h-12 w-40 md:h-14 md:w-48">
+              <Image
+                src={logoUrl}
+                alt="TownGate"
+                fill
+                className="object-contain"
+                sizes="200px"
+                priority
+              />
+            </div>
+          </div>
+        ) : null}
         <motion.p
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -61,11 +78,11 @@ export function Hero({ locale, bgUrl, kicker, title, subtitle }: Props) {
           className="mt-10 flex flex-wrap gap-4"
         >
           <Link
-            href="/projects"
+            href={primaryCta.href}
             locale={locale}
             className="inline-flex items-center justify-center rounded-full bg-brand-orange px-8 py-3.5 text-base font-bold text-white shadow-lg shadow-brand-orange/30 transition hover:brightness-110"
           >
-            {locale === "ar" ? "استكشف المشاريع" : "Explore projects"}
+            {primaryCta.label}
           </Link>
           <Link
             href="/contact"

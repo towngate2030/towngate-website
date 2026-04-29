@@ -4,6 +4,7 @@ import { getFeaturedProjects as getSeedFeatured, getProjects as getSeedProjects 
 export type Locale = "ar" | "en";
 
 export type HeroSettings = {
+  logoUrl?: string;
   heroBgUrl: string;
   kicker: Record<Locale, string>;
   title: Record<Locale, string>;
@@ -23,6 +24,7 @@ export async function getHeroSettings(): Promise<HeroSettings> {
   }
 
   type SiteSettingsDoc = {
+    logoUrl?: string;
     heroBgUrl?: string;
     kickerAr?: string;
     kickerEn?: string;
@@ -42,6 +44,7 @@ export async function getHeroSettings(): Promise<HeroSettings> {
 
   const doc = await sanityClient.fetch<SiteSettingsDoc | null>(
     `*[_type=="siteSettings"][0]{
+      logoUrl,
       heroBgUrl,
       kickerAr,kickerEn,
       heroTitleAr,heroTitleEn,
@@ -54,6 +57,7 @@ export async function getHeroSettings(): Promise<HeroSettings> {
   if (!doc) return seedHero();
 
   return {
+    logoUrl: doc.logoUrl || "",
     heroBgUrl: doc.heroBgUrl || "",
     kicker: { ar: doc.kickerAr || seedHero().kicker.ar, en: doc.kickerEn || seedHero().kicker.en },
     title: { ar: doc.heroTitleAr || seedHero().title.ar, en: doc.heroTitleEn || seedHero().title.en },
@@ -77,6 +81,7 @@ export async function getHeroSettings(): Promise<HeroSettings> {
 
 function seedHero(): HeroSettings {
   return {
+    logoUrl: "",
     heroBgUrl: "",
     kicker: { ar: "كمبوند — العاصمة الإدارية", en: "Compound — New Capital" },
     title: {
