@@ -88,7 +88,7 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
                   key={v}
                   type="button"
                   onClick={() => choose({ kind: "video", src: v })}
-                  className="group relative block aspect-[9/16] w-full overflow-hidden rounded-xl border border-brand-navy/10 bg-black/90"
+                  className="relative block aspect-[9/16] w-full overflow-hidden rounded-xl border border-brand-navy/10 bg-black/90"
                   aria-label="Video"
                 >
                   <video
@@ -96,7 +96,7 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
                     muted
                     playsInline
                     preload="metadata"
-                    className="h-full w-full object-cover opacity-80 transition group-hover:opacity-100"
+                    className="h-full w-full object-cover opacity-90"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                   <div className="absolute bottom-2 left-2 rounded-full bg-white/90 px-2 py-1 text-[10px] font-bold text-brand-navy">
@@ -222,17 +222,17 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
                   key={src}
                   type="button"
                   onClick={() => choose({ kind: "image", src })}
-                  className="group relative block aspect-[9/16] w-full overflow-hidden rounded-xl border border-brand-navy/10 bg-brand-navy/5"
+                  className="relative block aspect-[9/16] w-full overflow-hidden rounded-xl border border-brand-navy/10 bg-brand-navy/5"
                   aria-label="Image"
                 >
                   <Image
                     src={src}
                     alt={title}
                     fill
-                    className="object-cover transition duration-500 group-hover:scale-[1.03]"
+                    className="object-cover"
                     sizes="160px"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-brand-navy/55 to-transparent opacity-60 transition group-hover:opacity-40" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-brand-navy/55 to-transparent opacity-60" />
                 </button>
               ))
             ) : (
