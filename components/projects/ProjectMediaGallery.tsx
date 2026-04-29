@@ -15,6 +15,8 @@ type Selected =
   | { kind: "image"; src: string }
   | { kind: "video"; src: string };
 
+type MobileItem = Selected & { key: string };
+
 function uniq(items: string[]) {
   const seen = new Set<string>();
   const out: string[] = [];
@@ -64,6 +66,13 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
   const sideLabelImages = locale === "ar" ? "صور" : "Images";
   const sideLabelVideos = locale === "ar" ? "فيديو" : "Videos";
 
+  const mobileItems = useMemo<MobileItem[]>(() => {
+    const items: MobileItem[] = [];
+    for (const src of imgs) items.push({ kind: "image", src, key: `i:${src}` });
+    for (const src of vids) items.push({ kind: "video", src, key: `v:${src}` });
+    return items;
+  }, [imgs, vids]);
+
   useEffect(() => {
     if (!isFullscreen) return;
     const onKeyDown = (e: KeyboardEvent) => {
@@ -74,7 +83,7 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
   }, [isFullscreen]);
 
   return (
-    <section className="rounded-3xl border border-brand-navy/10 bg-white p-4 shadow-sm md:p-6">
+    <section className="w-full max-w-full rounded-3xl border border-brand-navy/10 bg-white p-4 shadow-sm md:p-6">
       <div className="grid gap-4 md:grid-cols-[160px_1fr_160px] md:gap-6">
         {/* Left rail (videos) — moves top -> bottom */}
         <div className="order-2 hidden md:block md:order-1">
@@ -113,7 +122,7 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
         {/* Center viewer */}
         <div className="order-1 md:order-2">
           <div
-            className={`relative overflow-hidden rounded-2xl border border-brand-navy/10 bg-brand-navy/5 ${mediaHeight}`}
+            className={`relative w-full max-w-full overflow-hidden rounded-2xl border border-brand-navy/10 bg-brand-navy/5 ${mediaHeight}`}
           >
             <div className="relative h-full w-full">
               <AnimatePresence mode="wait">
@@ -209,80 +218,25 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
             </div>
           </div>
 
-          {/* Mobile strips */}
-          <div className="mt-4 space-y-4 md:hidden">
-            <div>
-              <p className="mb-2 text-xs font-bold uppercase tracking-wide text-brand-navy/60">
-                {sideLabelImages}
-              </p>
-              <div className="flex gap-3 overflow-x-auto rounded-2xl border border-brand-navy/10 bg-white p-3">
-                {imgs.length ? (
-                  imgs.map((src) => (
-                    <button
-                      key={src}
-                      type="button"
-                      onClick={() => choose({ kind: "image", src })}
-                      className={`relative h-16 w-24 shrink-0 overflow-hidden rounded-xl border ${
-                        selected?.kind === "image" && selected.src === src
-                          ? "border-brand-orange"
-                          : "border-brand-navy/10"
-                      }`}
-                      aria-label="Image"
-                    >
-                      <Image
-                        src={src}
-                        alt={title}
-                        fill
-                        className="object-cover"
-                        sizes="120px"
-                      />
-                    </button>
-                  ))
-                ) : (
-                  <div className="text-xs font-semibold text-brand-navy/60">
-                    {locale === "ar" ? "لا توجد صور" : "No images"}
-                  </div>
-                )}
+          {/* Mobile single cinematic strip (images + videos) */}
+          <div className="mt-4 md:hidden">
+            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-brand-navy/60">
+              {sideLabelImages} / {sideLabelVideos}
+            </p>
+            {mobileItems.length ? (
+              <MobileStrip
+                items={mobileItems}
+                title={title}
+                selected={selected}
+                onPick={choose}
+              />
+            ) : (
+              <div className="text-xs font-semibold text-brand-navy/60">
+                {locale === "ar"
+                  ? "لا توجد صور أو فيديوهات"
+                  : "No images or videos"}
               </div>
-            </div>
-
-            <div>
-              <p className="mb-2 text-xs font-bold uppercase tracking-wide text-brand-navy/60">
-                {sideLabelVideos}
-              </p>
-              <div className="flex gap-3 overflow-x-auto rounded-2xl border border-brand-navy/10 bg-white p-3">
-                {vids.length ? (
-                  vids.map((v) => (
-                    <button
-                      key={v}
-                      type="button"
-                      onClick={() => choose({ kind: "video", src: v })}
-                      className={`relative h-16 w-28 shrink-0 overflow-hidden rounded-xl border ${
-                        selected?.kind === "video" && selected.src === v
-                          ? "border-brand-orange"
-                          : "border-brand-navy/10"
-                      } bg-black`}
-                      aria-label="Video"
-                    >
-                      <video
-                        src={v}
-                        muted
-                        playsInline
-                        preload="metadata"
-                        className="h-full w-full object-cover opacity-90"
-                      />
-                      <div className="absolute bottom-2 left-2 rounded-full bg-white/90 px-2 py-1 text-[10px] font-bold text-brand-navy">
-                        ▶
-                      </div>
-                    </button>
-                  ))
-                ) : (
-                  <div className="text-xs font-semibold text-brand-navy/60">
-                    {locale === "ar" ? "لا يوجد فيديوهات" : "No videos"}
-                  </div>
-                )}
-              </div>
-            </div>
+            )}
           </div>
         </div>
 
@@ -444,6 +398,79 @@ function Rail({
           }
           to {
             transform: translateY(0);
+          }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+function MobileStrip({
+  items,
+  title,
+  selected,
+  onPick,
+}: {
+  items: MobileItem[];
+  title: string;
+  selected: Selected | null;
+  onPick: (s: Selected) => void;
+}) {
+  const doubled = [...items, ...items];
+
+  return (
+    <div className="relative overflow-hidden rounded-2xl border border-brand-navy/10 bg-white">
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-white to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-white to-transparent" />
+
+      <div className="flex gap-3 p-3" style={{ animation: "tg-marquee-x 28s linear infinite" }}>
+        {doubled.map((it, idx) => {
+          const isActive =
+            selected?.kind === it.kind && selected?.src === it.src;
+          return (
+            <button
+              key={`${it.key}:${idx}`}
+              type="button"
+              onClick={() => onPick({ kind: it.kind, src: it.src })}
+              className={`relative h-16 w-28 shrink-0 overflow-hidden rounded-xl border ${
+                isActive ? "border-brand-orange" : "border-brand-navy/10"
+              } ${it.kind === "video" ? "bg-black" : "bg-brand-navy/5"}`}
+              aria-label={it.kind === "video" ? "Video" : "Image"}
+            >
+              {it.kind === "image" ? (
+                <Image
+                  src={it.src}
+                  alt={title}
+                  fill
+                  className="object-cover"
+                  sizes="120px"
+                />
+              ) : (
+                <>
+                  <video
+                    src={it.src}
+                    muted
+                    playsInline
+                    preload="metadata"
+                    className="h-full w-full object-cover opacity-90"
+                  />
+                  <div className="absolute bottom-2 left-2 rounded-full bg-white/90 px-2 py-1 text-[10px] font-bold text-brand-navy">
+                    ▶
+                  </div>
+                </>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      <style jsx>{`
+        @keyframes tg-marquee-x {
+          from {
+            transform: translateX(0);
+          }
+          to {
+            transform: translateX(-50%);
           }
         }
       `}</style>

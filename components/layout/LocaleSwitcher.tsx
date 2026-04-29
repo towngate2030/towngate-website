@@ -9,15 +9,16 @@ export function LocaleSwitcher() {
   const pathname = usePathname();
 
   const next = locale === "ar" ? "en" : "ar";
+  const label = locale === "ar" ? "EN" : "AR";
 
   return (
     <button
       type="button"
       onClick={() => router.replace(pathname, { locale: next })}
-      className="rounded-full px-3 py-1.5 text-sm font-semibold text-white/90 transition hover:text-white"
+      className="rounded-full px-3 py-2 text-sm font-extrabold tracking-wide text-white/95 transition hover:text-white"
       aria-label={locale === "ar" ? "Switch to English" : "التبديل إلى العربية"}
     >
-      {locale === "ar" ? "English" : "العربية"}
+      {label}
     </button>
   );
 }
