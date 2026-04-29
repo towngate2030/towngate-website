@@ -149,11 +149,21 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
                     transition={{ duration: 0.6, ease: "easeOut" }}
                     className="absolute inset-0 will-change-[opacity]"
                   >
+                    {/* Soft blurred backdrop so "contain" doesn't feel empty */}
+                    <Image
+                      src={selected.src}
+                      alt=""
+                      fill
+                      aria-hidden
+                      className="object-cover scale-110 blur-2xl opacity-35"
+                      sizes="100vw"
+                      priority
+                    />
                     <Image
                       src={selected.src}
                       alt={title}
                       fill
-                      className="object-cover object-center"
+                      className="object-contain"
                       sizes="(max-width:768px) 100vw, 60vw"
                       priority
                     />
@@ -422,9 +432,9 @@ function MobileStrip({
       <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-white to-transparent" />
 
       {/* Two identical tracks for a seamless loop */}
-      <div className="relative flex gap-3 p-3 [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+      <div className="relative overflow-hidden p-3 [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
         <div
-          className="flex w-max gap-3"
+          className="absolute left-0 top-0 flex w-max gap-3"
           style={{ animation: "tg-marquee-track 26s linear infinite" }}
         >
           {items.map((it) => (
@@ -438,7 +448,7 @@ function MobileStrip({
           ))}
         </div>
         <div
-          className="flex w-max gap-3"
+          className="absolute left-0 top-0 flex w-max gap-3"
           style={{ animation: "tg-marquee-track2 26s linear infinite" }}
         >
           {items.map((it) => (
@@ -451,6 +461,8 @@ function MobileStrip({
             />
           ))}
         </div>
+        {/* Spacer to give the container height */}
+        <div className="h-14" />
       </div>
 
       <style jsx>{`
@@ -464,10 +476,10 @@ function MobileStrip({
         }
         @keyframes tg-marquee-track2 {
           from {
-            transform: translateX(0);
+            transform: translateX(100%);
           }
           to {
-            transform: translateX(-100%);
+            transform: translateX(0);
           }
         }
         @media (prefers-reduced-motion: reduce) {
