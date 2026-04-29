@@ -34,10 +34,12 @@ Copy [`.env.example`](.env.example) to `.env.local` and fill values. At minimum 
 For the contact form to send email:
 
 1. Create a [Resend](https://resend.com) account and API key.
-2. Set `RESEND_API_KEY` and `RESEND_FROM` (verified domain or Resend test sender).
-3. Set `CONTACT_EMAIL` to the inbox that should receive leads (e.g. `Towngate2030@gmail.com`).
+2. Verify your domain in Resend (recommended) and set `RESEND_FROM` to:
+   - `Town Gate <no-reply@towngate-eg.com>`
+3. Set `RESEND_API_KEY` from Resend.
+4. Set `CONTACT_EMAIL` to the inbox that should receive leads (e.g. `Towngate2030@gmail.com`).
 
-Without `RESEND_API_KEY`, `POST /api/contact` still returns success but only logs the payload on the server (useful for local dev).
+Note: If the domain is not verified yet, Resend may restrict sending (you'll get a `403 validation_error`).
 
 **Newsletter:** the footer form posts to `POST /api/newsletter`. With Resend configured, you receive an email per subscriber at `CONTACT_EMAIL`; otherwise the address is logged in server logs (set up Resend on Vercel for production).
 
