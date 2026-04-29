@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { MobileProjectMediaGallery } from "./MobileProjectMediaGallery";
 
 type Props = {
   locale: "ar" | "en";
@@ -117,14 +118,8 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
 
   return (
     <>
-      {/* Mobile: disable gallery completely */}
-      <section className="mx-auto w-full max-w-full rounded-3xl border border-brand-navy/10 bg-white p-4 shadow-sm md:hidden">
-        <p className="text-center text-sm font-semibold text-brand-navy/70">
-          {locale === "ar"
-            ? "عرض الصور والفيديوهات متاح على شاشة الكمبيوتر."
-            : "Images and videos are available on desktop."}
-        </p>
-      </section>
+      {/* Mobile gallery (rebuilt) */}
+      <MobileProjectMediaGallery title={title} images={imgs} videos={vids} />
 
       {/* Desktop gallery */}
       <section className="mx-auto hidden w-full max-w-full overflow-hidden rounded-3xl border border-brand-navy/10 bg-white p-4 shadow-sm md:block md:p-6">
