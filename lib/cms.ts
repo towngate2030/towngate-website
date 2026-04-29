@@ -132,6 +132,23 @@ export async function getWhatsAppContacts() {
   return hero.whatsappContacts.length ? hero.whatsappContacts : seedHero().whatsappContacts;
 }
 
+export async function getAboutBody() {
+  const pid = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
+  if (!pid) {
+    return { ar: [], en: [] } as { ar: unknown[]; en: unknown[] };
+  }
+
+  type Doc = { aboutBodyAr?: unknown[]; aboutBodyEn?: unknown[] };
+  const doc = await sanityClient.fetch<Doc | null>(
+    `*[_type=="siteSettings"][0]{ aboutBodyAr, aboutBodyEn }`,
+  );
+
+  return {
+    ar: doc?.aboutBodyAr || [],
+    en: doc?.aboutBodyEn || [],
+  };
+}
+
 export type SiteProject = {
   slug: string;
   featured: boolean;

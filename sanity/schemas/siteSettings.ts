@@ -75,6 +75,19 @@ export const siteSettings = defineType({
         },
       ],
     }),
+
+    defineField({
+      name: "aboutBodyAr",
+      title: "About page body (AR) – rich text",
+      type: "array",
+      of: [{ type: "block" }],
+    }),
+    defineField({
+      name: "aboutBodyEn",
+      title: "About page body (EN) – rich text",
+      type: "array",
+      of: [{ type: "block" }],
+    }),
   ],
 });
 
