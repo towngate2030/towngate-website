@@ -202,6 +202,74 @@ export async function getFeaturedProjectsForSite() {
 }
 
 export async function getProjectBySlugForSite(slug: string) {
-  const all = await getProjectsForSite();
-  return all.find((p) => p.slug === slug);
+  const pid = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
+  // If Sanity isn't configured, fall back to seed content
+  if (!pid) {
+    const all = await getProjectsForSite();
+    return all.find((p) => p.slug === slug);
+  }
+
+  // Fetch directly by slug to avoid edge cases with non-latin slugs
+  type ProjectDoc = {
+    slug?: string;
+    featured?: boolean;
+    status?: string;
+    titleAr?: string;
+    titleEn?: string;
+    excerptAr?: string;
+    excerptEn?: string;
+    locationAr?: string;
+    locationEn?: string;
+    imageUrls?: string[];
+    videoUrls?: string[];
+    bodyAr?: unknown[];
+    bodyEn?: unknown[];
+  };
+
+  const candidates = Array.from(
+    new Set(
+      [slug, safeDecode(slug)]
+        .map((s) => String(s || "").trim())
+        .filter(Boolean),
+    ),
+  );
+
+  const row = await sanityClient.fetch<ProjectDoc | null>(
+    `*[_type=="project" && slug.current in $slugs][0]{
+      "slug": slug.current,
+      featured,status,
+      titleAr,titleEn,excerptAr,excerptEn,locationAr,locationEn,
+      imageUrls, videoUrls,
+      bodyAr, bodyEn
+    }`,
+    { slugs: candidates },
+  );
+
+  if (!row?.slug) {
+    // fallback to in-memory list if query fails (CDN mismatch etc.)
+    const all = await getProjectsForSite();
+    return all.find((p) => candidates.includes(p.slug));
+  }
+
+  return {
+    slug: row.slug,
+    featured: Boolean(row.featured),
+    status: row.status === "sold" ? "sold" : "available",
+    title: { ar: row.titleAr || "", en: row.titleEn || "" },
+    excerpt: { ar: row.excerptAr || "", en: row.excerptEn || "" },
+    location: { ar: row.locationAr || "", en: row.locationEn || "" },
+    coverImage: (row.imageUrls?.[0] as string) || "",
+    gallery: (row.imageUrls || []).slice(1),
+    videoUrls: (row.videoUrls || []).slice(0, 2),
+    bodyPortable: { ar: row.bodyAr || [], en: row.bodyEn || [] },
+    body: { ar: "", en: "" },
+  };
+}
+
+function safeDecode(s: string) {
+  try {
+    return decodeURIComponent(s);
+  } catch {
+    return s;
+  }
 }
