@@ -83,8 +83,8 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
   }, [isFullscreen]);
 
   return (
-    <section className="w-full max-w-full rounded-3xl border border-brand-navy/10 bg-white p-4 shadow-sm md:p-6">
-      <div className="grid gap-4 md:grid-cols-[160px_1fr_160px] md:gap-6">
+    <section className="w-full max-w-full overflow-hidden rounded-3xl border border-brand-navy/10 bg-white p-4 shadow-sm md:p-6">
+      <div className="grid max-w-full gap-4 md:grid-cols-[160px_1fr_160px] md:gap-6">
         {/* Left rail (videos) — moves top -> bottom */}
         <div className="order-2 hidden md:block md:order-1">
           <p className="mb-3 text-xs font-bold uppercase tracking-wide text-brand-navy/60">
@@ -419,11 +419,17 @@ function MobileStrip({
   const doubled = [...items, ...items];
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-brand-navy/10 bg-white">
+    <div className="relative max-w-full overflow-hidden rounded-2xl border border-brand-navy/10 bg-white">
       <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-white to-transparent" />
       <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-white to-transparent" />
 
-      <div className="flex gap-3 p-3" style={{ animation: "tg-marquee-x 28s linear infinite" }}>
+      <div
+        className="flex w-max gap-3 p-3"
+        style={{
+          animation: "tg-marquee-x 28s linear infinite",
+          willChange: "transform",
+        }}
+      >
         {doubled.map((it, idx) => {
           const isActive =
             selected?.kind === it.kind && selected?.src === it.src;
@@ -432,7 +438,7 @@ function MobileStrip({
               key={`${it.key}:${idx}`}
               type="button"
               onClick={() => onPick({ kind: it.kind, src: it.src })}
-              className={`relative h-16 w-28 shrink-0 overflow-hidden rounded-xl border ${
+              className={`relative h-14 w-24 shrink-0 overflow-hidden rounded-xl border ${
                 isActive ? "border-brand-orange" : "border-brand-navy/10"
               } ${it.kind === "video" ? "bg-black" : "bg-brand-navy/5"}`}
               aria-label={it.kind === "video" ? "Video" : "Image"}
