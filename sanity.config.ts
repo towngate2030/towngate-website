@@ -2,18 +2,15 @@ import { defineConfig } from "sanity";
 import { structureTool } from "sanity/structure";
 import { schemaTypes } from "./sanity/schemas";
 
-const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
+// Hosted Sanity Studio build does not reliably get Next.js env vars.
+// Keep env support for local dev, but fall back to the known project id.
+const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "dcgcui7d";
 const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || "production";
-
-if (!projectId) {
-  // Sanity will show a helpful error in Studio if missing
-  console.warn("Missing NEXT_PUBLIC_SANITY_PROJECT_ID");
-}
 
 export default defineConfig({
   name: "towngate",
   title: "TownGate Studio",
-  projectId: projectId || "missing",
+  projectId,
   dataset,
   basePath: "/studio",
   plugins: [structureTool()],

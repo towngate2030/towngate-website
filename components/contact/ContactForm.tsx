@@ -8,10 +8,12 @@ export function ContactForm() {
   const [status, setStatus] = useState<"idle" | "sending" | "ok" | "err">(
     "idle",
   );
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setStatus("sending");
+    setErrorMsg(null);
     const form = e.currentTarget;
     const fd = new FormData(form);
     const body = {
@@ -27,11 +29,26 @@ export function ContactForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      if (!res.ok) throw new Error("bad");
+      if (!res.ok) {
+        // Show the server-side error reason to speed up debugging
+        let msg = "Email failed";
+        try {
+          const data = (await res.json()) as { error?: string; details?: string };
+          msg = data.details || data.error || msg;
+        } catch {
+          msg = await res.text().catch(() => msg);
+        }
+        throw new Error(msg);
+      }
       setStatus("ok");
       form.reset();
-    } catch {
+    } catch (e) {
       setStatus("err");
+      if (e instanceof Error) {
+        setErrorMsg(e.message ? e.message : "Unknown error");
+      } else {
+        setErrorMsg("Unknown error");
+      }
     }
   }
 
@@ -101,6 +118,11 @@ export function ContactForm() {
       {status === "err" ? (
         <p className="text-center text-sm font-semibold text-red-600">
           {t("error")}
+        </p>
+      ) : null}
+      {status === "err" ? (
+        <p className="break-words px-2 text-center text-xs font-medium text-red-700">
+          {errorMsg ?? "No details (check Vercel logs / Resend settings)"}
         </p>
       ) : null}
     </form>

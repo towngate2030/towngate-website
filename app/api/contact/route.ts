@@ -26,7 +26,25 @@ export async function POST(req: Request) {
   const from = process.env.RESEND_FROM;
   const apiKey = process.env.RESEND_API_KEY;
 
-  if (apiKey && from) {
+  if (!apiKey || !from) {
+    console.error(
+      "[contact] Resend not configured",
+      JSON.stringify({
+        hasApiKey: Boolean(apiKey),
+        hasFrom: Boolean(from),
+        to,
+      }),
+    );
+    return NextResponse.json(
+      {
+        error:
+          "Resend not configured (set RESEND_API_KEY and RESEND_FROM in Vercel).",
+      },
+      { status: 500 },
+    );
+  }
+
+  {
     const html = `
       <p><strong>Name:</strong> ${escapeHtml(name)}</p>
       <p><strong>Email:</strong> ${escapeHtml(email)}</p>
@@ -50,10 +68,11 @@ export async function POST(req: Request) {
     if (!res.ok) {
       const err = await res.text();
       console.error("Resend error:", err);
-      return NextResponse.json({ error: "Email failed" }, { status: 502 });
+      return NextResponse.json(
+        { error: "Email failed", details: err.slice(0, 500) },
+        { status: 502 },
+      );
     }
-  } else {
-    console.info("[contact] (no RESEND_API_KEY) message from", email, name);
   }
 
   return NextResponse.json({ ok: true });
