@@ -213,27 +213,14 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
                       swipeRef.current.active = false;
                     }}
                   >
-                    {/* Keep mobile clean: no overlays that can obscure media */}
-                    <div className="absolute inset-0 bg-black/10 md:bg-transparent" />
-                    {/* Mobile: use plain img for maximum compatibility */}
+                    {/* Use plain img for maximum compatibility across devices */}
                     <img
                       src={effectiveSelected.src}
                       alt={title}
-                      className="absolute inset-0 h-full w-full object-contain md:hidden"
+                      className="absolute inset-0 h-full w-full object-contain"
                       loading="eager"
                       decoding="async"
-                      referrerPolicy="no-referrer"
                     />
-                    {/* Desktop/tablet: keep Next/Image optimizations */}
-                    <Image
-                      src={effectiveSelected.src}
-                      alt={title}
-                      fill
-                      className="hidden object-contain md:block"
-                      sizes="(max-width:768px) 100vw, 60vw"
-                      priority
-                    />
-                    <div className="pointer-events-none absolute inset-0 hidden md:block bg-[radial-gradient(ellipse_at_center,transparent_40%,rgba(0,0,0,0.28))]" />
                   </motion.div>
                 ) : (
                   <motion.div
@@ -262,7 +249,7 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
                       controls
                       playsInline
                       preload="metadata"
-                      className="h-full w-full object-cover"
+                      className="h-full w-full object-contain"
                     />
                   </motion.div>
                 )}
