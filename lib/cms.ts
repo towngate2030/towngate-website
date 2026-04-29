@@ -154,6 +154,23 @@ export async function getAboutBody() {
   };
 }
 
+export type SiteUnitLayoutItem = {
+  itemNameAr: string;
+  itemNameEn: string;
+  image: string;
+  optionalPdf?: string;
+  order: number;
+  isActive: boolean;
+};
+
+export type SiteUnitLayoutGroup = {
+  groupNameAr: string;
+  groupNameEn: string;
+  order: number;
+  isActive: boolean;
+  items: SiteUnitLayoutItem[];
+};
+
 export type SiteProject = {
   slug: string;
   featured: boolean;
@@ -164,10 +181,78 @@ export type SiteProject = {
   coverImage: string;
   gallery: string[];
   videoUrls: string[];
+  unitLayoutGroups: SiteUnitLayoutGroup[];
   bodyPortable: { ar: unknown[]; en: unknown[] };
   // Compatibility with existing `Project` UI types
   body: Record<Locale, string>;
 };
+
+function isHttpUrl(s: unknown): s is string {
+  const v = String(s || "").trim();
+  return v.startsWith("http://") || v.startsWith("https://");
+}
+
+function normalizeUnitLayoutGroups(raw: unknown): SiteUnitLayoutGroup[] {
+  if (!Array.isArray(raw)) return [];
+
+  const groups = raw
+    .map((g) => {
+      const group = g as {
+        groupNameAr?: string;
+        groupNameEn?: string;
+        order?: number;
+        isActive?: boolean;
+        items?: unknown[];
+      };
+
+      const items = (Array.isArray(group.items) ? group.items : [])
+        .map((it) => {
+          const x = it as {
+            itemNameAr?: string;
+            itemNameEn?: string;
+            image?: string;
+            optionalPdf?: string;
+            order?: number;
+            isActive?: boolean;
+          };
+
+          const image = isHttpUrl(x.image) ? x.image.trim() : "";
+          const optionalPdf = isHttpUrl(x.optionalPdf) ? x.optionalPdf.trim() : undefined;
+
+          const item: SiteUnitLayoutItem = {
+            itemNameAr: String(x.itemNameAr || "").trim(),
+            itemNameEn: String(x.itemNameEn || "").trim(),
+            image,
+            optionalPdf,
+            order: Number(x.order || 0),
+            isActive: Boolean(x.isActive),
+          };
+
+          return item;
+        })
+        .filter((x) => x.isActive && x.image && (x.itemNameAr || x.itemNameEn))
+        .sort((a, b) => a.order - b.order);
+
+      const out: SiteUnitLayoutGroup = {
+        groupNameAr: String(group.groupNameAr || "").trim(),
+        groupNameEn: String(group.groupNameEn || "").trim(),
+        order: Number(group.order || 0),
+        isActive: Boolean(group.isActive),
+        items,
+      };
+
+      return out;
+    })
+    .filter(
+      (g) =>
+        g.isActive &&
+        g.items.length > 0 &&
+        (g.groupNameAr || g.groupNameEn),
+    )
+    .sort((a, b) => a.order - b.order);
+
+  return groups;
+}
 
 export async function getProjectsForSite(): Promise<SiteProject[]> {
   const pid = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
@@ -185,6 +270,7 @@ export async function getProjectsForSite(): Promise<SiteProject[]> {
     locationEn?: string;
     imageUrls?: string[];
     videoUrls?: string[];
+    unitLayoutGroups?: unknown[];
     bodyAr?: unknown[];
     bodyEn?: unknown[];
   };
@@ -195,6 +281,7 @@ export async function getProjectsForSite(): Promise<SiteProject[]> {
       featured,status,
       titleAr,titleEn,excerptAr,excerptEn,locationAr,locationEn,
       imageUrls, videoUrls,
+      unitLayoutGroups,
       bodyAr, bodyEn
     }`,
   );
@@ -213,6 +300,7 @@ export async function getProjectsForSite(): Promise<SiteProject[]> {
       coverImage: (p.imageUrls?.[0] as string) || "",
       gallery: (p.imageUrls || []).slice(1),
       videoUrls: (p.videoUrls || []).slice(0, 2),
+      unitLayoutGroups: normalizeUnitLayoutGroups(p.unitLayoutGroups),
       bodyPortable: { ar: p.bodyAr || [], en: p.bodyEn || [] },
       body: { ar: "", en: "" },
     }));
@@ -249,6 +337,7 @@ export async function getProjectBySlugForSite(slug: string) {
     locationEn?: string;
     imageUrls?: string[];
     videoUrls?: string[];
+    unitLayoutGroups?: unknown[];
     bodyAr?: unknown[];
     bodyEn?: unknown[];
   };
@@ -267,6 +356,7 @@ export async function getProjectBySlugForSite(slug: string) {
       featured,status,
       titleAr,titleEn,excerptAr,excerptEn,locationAr,locationEn,
       imageUrls, videoUrls,
+      unitLayoutGroups,
       bodyAr, bodyEn
     }`,
     { slugs: candidates },
@@ -288,6 +378,7 @@ export async function getProjectBySlugForSite(slug: string) {
     coverImage: (row.imageUrls?.[0] as string) || "",
     gallery: (row.imageUrls || []).slice(1),
     videoUrls: (row.videoUrls || []).slice(0, 2),
+    unitLayoutGroups: normalizeUnitLayoutGroups(row.unitLayoutGroups),
     bodyPortable: { ar: row.bodyAr || [], en: row.bodyEn || [] },
     body: { ar: "", en: "" },
   };

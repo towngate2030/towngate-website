@@ -7,7 +7,7 @@ import { getWhatsAppUrl } from "@/lib/whatsapp";
 import { PortableText } from "@portabletext/react";
 import type { PortableTextBlock } from "@portabletext/types";
 import { ProjectMediaGallery } from "@/components/projects/ProjectMediaGallery";
-import { UnitTypesLayouts, type UnitLayoutItem } from "@/components/projects/UnitTypesLayouts";
+import { UnitTypesLayouts } from "@/components/projects/UnitTypesLayouts";
 
 export const dynamic = "force-dynamic";
 
@@ -33,9 +33,6 @@ export default async function ProjectDetailPage({ params }: Props) {
     `${tw("prefill")} (${title})`,
   );
   const allImages = [project.coverImage, ...project.gallery].filter(Boolean);
-
-  // Prepared for CMS: connect this to Sanity later.
-  const unitLayouts: UnitLayoutItem[] = [];
 
   return (
     <article className="pb-16">
@@ -77,10 +74,7 @@ export default async function ProjectDetailPage({ params }: Props) {
           />
         </div>
 
-        <UnitTypesLayouts
-          locale={locale as "ar" | "en"}
-          unitLayouts={unitLayouts}
-        />
+        <UnitTypesLayouts locale={locale as "ar" | "en"} groups={project.unitLayoutGroups} />
 
         <div className="prose prose-lg mt-6 max-w-none text-brand-navy/90">
           <PortableText value={bodyPortable} />
