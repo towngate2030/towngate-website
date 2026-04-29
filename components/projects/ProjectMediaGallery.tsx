@@ -248,7 +248,7 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
                       src={effectiveSelected.src}
                       controls
                       playsInline
-                      className="h-full w-full object-contain"
+                      className="h-full w-full object-cover"
                     />
                   </motion.div>
                 )}
@@ -492,88 +492,103 @@ function MobileStrip({
   selected: Selected | null;
   onPick: (s: Selected) => void;
 }) {
-  // Repeat enough times so the loop always looks continuous, even with few items
-  const loopItems = useMemo(() => {
-    const base = items.length ? items : [];
-    const min = 16;
-    const out: MobileItem[] = [];
-    if (!base.length) return out;
-    while (out.length < min) out.push(...base);
-    return out;
-  }, [items]);
+  // Seamless loop using translateX so it never breaks layout/scroll on mobile
+  const doubled = useMemo(() => [...items, ...items], [items]);
+  const wrapWRef = useRef<HTMLDivElement | null>(null);
+  const trackRef = useRef<HTMLDivElement | null>(null);
 
-  const scrollerRef = useRef<HTMLDivElement | null>(null);
-  const pauseRef = useRef(false);
-  const resumeTimer = useRef<number | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const xRef = useRef(0); // current translateX (negative = moving left)
+  const dragStartX = useRef(0);
+  const pointerStartX = useRef(0);
+
+  // Pixel speed per second
+  const speed = 28;
 
   useEffect(() => {
-    const el = scrollerRef.current;
-    if (!el) return;
+    const wrap = wrapWRef.current;
+    const track = trackRef.current;
+    if (!wrap || !track) return;
 
     let raf = 0;
     let last = performance.now();
-    const pxPerSec = 42;
 
     const tick = (now: number) => {
       raf = requestAnimationFrame(tick);
       const dt = (now - last) / 1000;
       last = now;
-      if (pauseRef.current) return;
+
+      if (dragging) return;
       if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
 
-      const half = el.scrollWidth / 2;
+      const half = track.scrollWidth / 2;
       if (!half) return;
-      el.scrollLeft += pxPerSec * dt;
-      if (el.scrollLeft >= half) {
-        el.scrollLeft -= half;
-      }
+
+      xRef.current -= speed * dt;
+      if (xRef.current <= -half) xRef.current += half;
+      track.style.transform = `translateX(${xRef.current}px)`;
     };
 
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [loopItems.length]);
+  }, [dragging]);
 
-  // Kickstart after layout so scrollWidth is non-zero on mobile
-  useEffect(() => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    // Slight offset avoids some browsers reporting 0 scrollWidth until first scroll
-    el.scrollLeft = 1;
-  }, [loopItems.length]);
+  function onPointerDown(e: React.PointerEvent) {
+    const wrap = wrapWRef.current;
+    const track = trackRef.current;
+    if (!wrap || !track) return;
+    setDragging(true);
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    pointerStartX.current = e.clientX;
+    dragStartX.current = xRef.current;
+  }
 
-  function pauseAndResume() {
-    pauseRef.current = true;
-    if (resumeTimer.current) window.clearTimeout(resumeTimer.current);
-    resumeTimer.current = window.setTimeout(() => {
-      pauseRef.current = false;
-    }, 900);
+  function onPointerMove(e: React.PointerEvent) {
+    if (!dragging) return;
+    const track = trackRef.current;
+    if (!track) return;
+    const dx = e.clientX - pointerStartX.current;
+    const half = track.scrollWidth / 2;
+    if (!half) return;
+    xRef.current = dragStartX.current + dx;
+    while (xRef.current > 0) xRef.current -= half;
+    while (xRef.current <= -half) xRef.current += half;
+    track.style.transform = `translateX(${xRef.current}px)`;
+  }
+
+  function onPointerUp() {
+    setDragging(false);
   }
 
   return (
-    <div className="relative w-full max-w-full overflow-hidden rounded-2xl border border-brand-navy/10 bg-white">
+    <div
+      ref={wrapWRef}
+      className="relative w-full max-w-full touch-pan-y overflow-hidden rounded-2xl border border-brand-navy/10 bg-white"
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+    >
       <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-white to-transparent" />
       <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-white to-transparent" />
 
-      <div
-        ref={scrollerRef}
-        className="flex w-full max-w-full snap-x snap-mandatory gap-2 overflow-x-auto p-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        onTouchStart={pauseAndResume}
-        onTouchMove={pauseAndResume}
-        onPointerDown={pauseAndResume}
-        onPointerMove={pauseAndResume}
-      >
-        {[...loopItems, ...loopItems].map((it, idx) => (
-          <MobileThumb
-            key={`${it.key}:${idx}`}
-            item={it}
-            title={title}
-            selected={selected}
-            onPick={(s) => {
-              pauseAndResume();
-              onPick(s);
-            }}
-          />
-        ))}
+      <div className="relative overflow-hidden p-2 [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+        <motion.div
+          ref={trackRef}
+          className="flex w-max gap-2 will-change-transform"
+          style={{ transform: `translateX(${xRef.current}px)` }}
+        >
+          {doubled.map((it, idx) => (
+            <MobileThumb
+              key={`${it.key}:${idx}`}
+              item={it}
+              title={title}
+              selected={selected}
+              onPick={onPick}
+            />
+          ))}
+        </motion.div>
+        <div className="h-12" />
       </div>
     </div>
   );
@@ -595,19 +610,13 @@ function MobileThumb({
     <button
       type="button"
       onClick={() => onPick({ kind: item.kind, src: item.src })}
-      className={`relative h-10 w-16 shrink-0 snap-start overflow-hidden rounded-lg border ${
+      className={`relative h-12 w-20 shrink-0 overflow-hidden rounded-xl border ${
         isActive ? "border-brand-orange" : "border-brand-navy/10"
       } ${item.kind === "video" ? "bg-black" : "bg-brand-navy/5"}`}
       aria-label={item.kind === "video" ? "Video" : "Image"}
     >
       {item.kind === "image" ? (
-        <Image
-          src={item.src}
-          alt={title}
-          fill
-          className="object-cover"
-          sizes="120px"
-        />
+        <Image src={item.src} alt={title} fill className="object-cover" sizes="120px" />
       ) : (
         <>
           <video
