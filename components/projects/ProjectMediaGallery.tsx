@@ -426,110 +426,80 @@ function MobileStrip({
   selected: Selected | null;
   onPick: (s: Selected) => void;
 }) {
-  const doubled = useMemo(() => [...items, ...items], [items]);
-  const wrapWRef = useRef<HTMLDivElement | null>(null);
-  const trackRef = useRef<HTMLDivElement | null>(null);
+  // Repeat enough times so the loop always looks continuous, even with few items
+  const loopItems = useMemo(() => {
+    const base = items.length ? items : [];
+    const min = 16;
+    const out: MobileItem[] = [];
+    if (!base.length) return out;
+    while (out.length < min) out.push(...base);
+    return out;
+  }, [items]);
 
-  const [dragging, setDragging] = useState(false);
-  const xRef = useRef(0); // current translateX (negative = moving left)
-  const dragStartX = useRef(0);
-  const pointerStartX = useRef(0);
-  const didDrag = useRef(false);
-
-  // Pixel speed per second
-  const speed = 28;
+  const scrollerRef = useRef<HTMLDivElement | null>(null);
+  const pauseRef = useRef(false);
+  const resumeTimer = useRef<number | null>(null);
 
   useEffect(() => {
-    const wrap = wrapWRef.current;
-    const track = trackRef.current;
-    if (!wrap || !track) return;
+    const el = scrollerRef.current;
+    if (!el) return;
 
     let raf = 0;
     let last = performance.now();
+    const pxPerSec = 42;
 
     const tick = (now: number) => {
       raf = requestAnimationFrame(tick);
       const dt = (now - last) / 1000;
       last = now;
-
-      if (dragging) return;
+      if (pauseRef.current) return;
       if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
 
-      const half = track.scrollWidth / 2;
+      const half = el.scrollWidth / 2;
       if (!half) return;
-
-      xRef.current -= speed * dt;
-      // wrap seamlessly
-      if (xRef.current <= -half) xRef.current += half;
-      track.style.transform = `translateX(${xRef.current}px)`;
+      el.scrollLeft += pxPerSec * dt;
+      if (el.scrollLeft >= half) {
+        el.scrollLeft -= half;
+      }
     };
 
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [dragging, speed]);
+  }, [loopItems.length]);
 
-  function onPointerDown(e: React.PointerEvent) {
-    const wrap = wrapWRef.current;
-    const track = trackRef.current;
-    if (!wrap || !track) return;
-    // If the user tapped a thumb, let the button handle it (no drag capture).
-    const target = e.target as HTMLElement | null;
-    if (target?.closest?.("button")) return;
-    setDragging(true);
-    didDrag.current = false;
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    pointerStartX.current = e.clientX;
-    dragStartX.current = xRef.current;
-  }
-
-  function onPointerMove(e: React.PointerEvent) {
-    if (!dragging) return;
-    const track = trackRef.current;
-    if (!track) return;
-    const dx = e.clientX - pointerStartX.current;
-    if (Math.abs(dx) > 3) didDrag.current = true;
-    const half = track.scrollWidth / 2;
-    if (!half) return;
-    xRef.current = dragStartX.current + dx;
-    // keep bounded to avoid huge numbers
-    while (xRef.current > 0) xRef.current -= half;
-    while (xRef.current <= -half) xRef.current += half;
-    track.style.transform = `translateX(${xRef.current}px)`;
-  }
-
-  function onPointerUp() {
-    setDragging(false);
+  function pauseAndResume() {
+    pauseRef.current = true;
+    if (resumeTimer.current) window.clearTimeout(resumeTimer.current);
+    resumeTimer.current = window.setTimeout(() => {
+      pauseRef.current = false;
+    }, 900);
   }
 
   return (
-    <div
-      ref={wrapWRef}
-      className="relative max-w-full touch-pan-y overflow-hidden rounded-2xl border border-brand-navy/10 bg-white"
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerCancel={onPointerUp}
-    >
+    <div className="relative max-w-full overflow-hidden rounded-2xl border border-brand-navy/10 bg-white">
       <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-white to-transparent" />
       <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-white to-transparent" />
 
-      <div className="relative overflow-hidden p-2 [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
-        <motion.div
-          ref={trackRef}
-          className="flex w-max gap-3 will-change-transform"
-          style={{ transform: `translateX(${xRef.current}px)` }}
-        >
-          {doubled.map((it, idx) => (
-            <MobileThumb
-              key={`${it.key}:${idx}`}
-              item={it}
-              title={title}
-              selected={selected}
-              onPick={onPick}
-            />
-          ))}
-        </motion.div>
-        <div className="h-12" />
+      <div
+        ref={scrollerRef}
+        className="flex gap-3 overflow-x-auto p-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]"
+        onTouchStart={pauseAndResume}
+        onTouchMove={pauseAndResume}
+        onPointerDown={pauseAndResume}
+        onPointerMove={pauseAndResume}
+      >
+        {[...loopItems, ...loopItems].map((it, idx) => (
+          <MobileThumb
+            key={`${it.key}:${idx}`}
+            item={it}
+            title={title}
+            selected={selected}
+            onPick={(s) => {
+              pauseAndResume();
+              onPick(s);
+            }}
+          />
+        ))}
       </div>
     </div>
   );
@@ -551,7 +521,6 @@ function MobileThumb({
     <button
       type="button"
       onClick={() => onPick({ kind: item.kind, src: item.src })}
-      onPointerDown={(e) => e.stopPropagation()}
       className={`relative h-12 w-20 shrink-0 overflow-hidden rounded-xl border ${
         isActive ? "border-brand-orange" : "border-brand-navy/10"
       } ${item.kind === "video" ? "bg-black" : "bg-brand-navy/5"}`}

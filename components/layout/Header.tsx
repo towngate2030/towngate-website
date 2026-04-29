@@ -17,8 +17,11 @@ export async function Header({ locale }: { locale: string }) {
 
   const mobileLinks = links.filter((l) => l.href !== "/contact");
 
+  const navBtn =
+    "rounded-full bg-brand-orange px-4 py-2 text-xs font-extrabold text-white shadow-md shadow-brand-orange/20 transition hover:brightness-110";
+
   return (
-    <header className="sticky top-0 z-50 bg-transparent md:absolute md:inset-x-0 md:top-0 md:bg-transparent">
+    <header className="sticky top-0 z-50 bg-amber-100/95 shadow-sm md:absolute md:inset-x-0 md:top-0 md:bg-transparent md:shadow-none">
       {/* Desktop row */}
       <div className="mx-auto hidden max-w-6xl items-center justify-between gap-3 px-4 py-2 md:flex md:px-6 md:py-3">
         <Logo locale={locale} logoUrl={hero.logoUrl || undefined} />
@@ -52,7 +55,7 @@ export async function Header({ locale }: { locale: string }) {
                 key={href}
                 href={href}
                 locale={locale}
-                className="shrink-0 rounded-full bg-brand-orange px-4 py-2 text-xs font-extrabold text-white shadow-md shadow-brand-orange/20 transition hover:brightness-110"
+                className={`shrink-0 ${navBtn}`}
               >
                 {label}
               </Link>
