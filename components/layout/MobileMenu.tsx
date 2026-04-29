@@ -39,10 +39,13 @@ export function MobileMenu({
     return items;
   }, [items]);
 
+  const menuAlign =
+    activeLocale === "ar" ? "items-end text-right" : "items-start text-left";
+
   return (
     <div className="md:hidden">
       {/* Fixed yellow bar */}
-      <div className="sticky top-0 z-50 bg-amber-100/95 shadow-sm">
+      <div className="fixed inset-x-0 top-0 z-50 bg-amber-100/95 shadow-sm">
         <div className="relative mx-auto flex min-h-16 max-w-6xl items-center px-4 py-3">
           {/* Centered logo */}
           <div className="absolute left-1/2 -translate-x-1/2">
@@ -61,15 +64,17 @@ export function MobileMenu({
               className="grid h-11 w-11 place-items-center rounded-full bg-brand-orange shadow-md shadow-brand-orange/20 transition hover:brightness-110"
               aria-label={open ? "Close menu" : "Open menu"}
             >
-              <span className="grid gap-1.5">
-                <span className="h-0.5 w-5 rounded bg-white" />
-                <span className="h-0.5 w-5 rounded bg-white" />
-                <span className="h-0.5 w-5 rounded bg-white" />
+              <span className="grid gap-1">
+                <span className="h-0.5 w-4 rounded bg-white" />
+                <span className="h-0.5 w-4 rounded bg-white" />
+                <span className="h-0.5 w-4 rounded bg-white" />
               </span>
             </button>
           </div>
         </div>
       </div>
+      {/* Spacer so content never sits under the fixed bar */}
+      <div className="h-16" />
 
       {/* Dropdown */}
       {open ? (
@@ -80,16 +85,16 @@ export function MobileMenu({
             aria-label="Close"
             onClick={() => setOpen(false)}
           />
-          <div className="absolute right-3 top-16 w-[min(92vw,340px)] overflow-hidden rounded-2xl border border-brand-navy/10 bg-white shadow-xl">
+          <div className="absolute right-3 top-16 w-[min(86vw,320px)] overflow-hidden rounded-2xl border border-brand-navy/10 bg-white shadow-xl">
             <div className="p-3">
-              <nav className="flex flex-col gap-2">
+              <nav className={`flex flex-col gap-2 ${menuAlign}`}>
                 {ordered.map((it) => (
                   <Link
                     key={it.href}
                     href={it.href}
                     locale={locale}
                     onClick={() => setOpen(false)}
-                    className="rounded-xl bg-brand-orange px-4 py-2 text-xs font-extrabold text-white shadow-sm shadow-brand-orange/20 transition hover:brightness-110"
+                    className="inline-flex w-fit rounded-xl bg-brand-orange px-4 py-2 text-xs font-extrabold text-white shadow-sm shadow-brand-orange/20 transition hover:brightness-110"
                   >
                     {it.label}
                   </Link>
@@ -101,7 +106,7 @@ export function MobileMenu({
                     setOpen(false);
                     router.replace(pathname, { locale: nextLocale });
                   }}
-                  className="rounded-xl bg-brand-orange px-4 py-2 text-xs font-extrabold text-white shadow-sm shadow-brand-orange/20 transition hover:brightness-110"
+                  className="inline-flex w-fit rounded-xl bg-brand-orange px-4 py-2 text-xs font-extrabold text-white shadow-sm shadow-brand-orange/20 transition hover:brightness-110"
                 >
                   {localeLabel}
                 </button>
