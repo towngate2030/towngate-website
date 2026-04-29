@@ -32,10 +32,10 @@ export function Hero({ locale, bgUrl, logoUrl, kicker, title, subtitle, primaryC
         />
       ) : null}
 
-      <div className="relative mx-auto max-w-6xl px-4 py-14 md:px-6 md:py-28 md:pt-32">
+      <div className="relative mx-auto max-w-6xl px-4 py-14 md:px-6 md:py-24 md:pt-24">
         {logoUrl ? (
-          <div className="mb-6 flex items-center justify-start">
-            <div className="relative h-16 w-56 sm:h-20 sm:w-64 md:h-24 md:w-80">
+          <div className="mb-6 flex items-center justify-start md:hidden">
+            <div className="relative h-16 w-56 sm:h-20 sm:w-64">
               <Image
                 src={logoUrl}
                 alt="TownGate"

@@ -16,7 +16,7 @@ export function Logo({
           alt="TownGate"
           width={220}
           height={64}
-          className="h-10 w-auto md:h-12"
+          className="h-10 w-auto md:h-14 lg:h-16"
           priority
         />
       ) : (
