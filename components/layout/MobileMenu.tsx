@@ -90,16 +90,16 @@ export function MobileMenu({
               animate={{ opacity: 1, y: 0, x: 0 }}
               exit={{ opacity: 0, y: -8, x: 8 }}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className="absolute right-4 top-[72px] w-fit max-w-[calc(100vw-32px)] overflow-hidden rounded-2xl border border-white/10 bg-brand-navy/95 shadow-2xl"
+              className="absolute right-4 top-[72px] w-fit max-w-[calc(100vw-32px)] overflow-hidden rounded-2xl border border-white/10 bg-brand-navy/95 shadow-xl"
             >
-              <nav className="flex flex-col gap-2 p-3">
+              <nav className="flex flex-col gap-1.5 p-2.5">
                 {ordered.map((it) => (
                   <Link
                     key={it.href}
                     href={it.href}
                     locale={locale}
                     onClick={() => setOpen(false)}
-                    className="flex h-12 w-full items-center justify-center whitespace-nowrap rounded-xl bg-brand-orange px-4 text-center text-base font-extrabold text-white shadow-sm shadow-brand-orange/20 transition hover:brightness-110 active:brightness-105"
+                    className="flex h-11 w-full items-center justify-center whitespace-nowrap rounded-[10px] bg-brand-orange px-4 text-center text-[15px] font-extrabold text-white transition hover:brightness-110 active:brightness-105"
                   >
                     {it.label}
                   </Link>
@@ -111,7 +111,7 @@ export function MobileMenu({
                     setOpen(false);
                     router.replace(pathname, { locale: nextLocale });
                   }}
-                  className="flex h-12 w-full items-center justify-center whitespace-nowrap rounded-xl bg-brand-orange px-4 text-center text-base font-extrabold text-white shadow-sm shadow-brand-orange/20 transition hover:brightness-110 active:brightness-105"
+                  className="flex h-11 w-full items-center justify-center whitespace-nowrap rounded-[10px] bg-brand-orange px-4 text-center text-[15px] font-extrabold text-white transition hover:brightness-110 active:brightness-105"
                 >
                   {localeLabel}
                 </button>
