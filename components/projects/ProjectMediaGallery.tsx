@@ -507,7 +507,7 @@ function MobileStrip({
       <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-white to-transparent" />
       <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-white to-transparent" />
 
-      <div className="relative overflow-hidden p-3 [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+      <div className="relative overflow-hidden p-2 [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
         <motion.div
           ref={trackRef}
           className="flex w-max gap-3 will-change-transform"
@@ -523,7 +523,7 @@ function MobileStrip({
             />
           ))}
         </motion.div>
-        <div className="h-14" />
+        <div className="h-12" />
       </div>
     </div>
   );
@@ -545,7 +545,7 @@ function MobileThumb({
     <button
       type="button"
       onClick={() => onPick({ kind: item.kind, src: item.src })}
-      className={`relative h-14 w-24 shrink-0 overflow-hidden rounded-xl border ${
+      className={`relative h-12 w-20 shrink-0 overflow-hidden rounded-xl border ${
         isActive ? "border-brand-orange" : "border-brand-navy/10"
       } ${item.kind === "video" ? "bg-black" : "bg-brand-navy/5"}`}
       aria-label={item.kind === "video" ? "Video" : "Image"}
