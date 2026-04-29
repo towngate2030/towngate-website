@@ -52,20 +52,17 @@ export function MobileProjectMediaGallery({
   }, [images, videos, title]);
 
   const [activeIndex, setActiveIndex] = useState(0);
-  const [isUserInteracting, setIsUserInteracting] = useState(false);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [fullscreen, setFullscreen] = useState<null | { type: "image" | "video"; url: string }>(
     null,
   );
+  const [isStripPaused, setIsStripPaused] = useState(false);
 
   const interactTimer = useRef<number | null>(null);
   const thumbRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const failedIds = useRef<Set<string>>(new Set());
-  const stripRef = useRef<HTMLDivElement | null>(null);
-  const animationRef = useRef<number | null>(null);
-  const isPausedRef = useRef(false);
-  const timeoutRef = useRef<number | null>(null);
+  const stripResumeTimer = useRef<number | null>(null);
 
   const activeItem = mediaItems[activeIndex] ?? null;
 
@@ -91,86 +88,28 @@ export function MobileProjectMediaGallery({
     }
   }, [activeIndex]);
 
-  // Auto slideshow for images only (every 4 seconds)
-  useEffect(() => {
-    if (!activeItem) return;
-    if (activeItem.type !== "image") return;
-    if (isVideoPlaying) return;
-    if (isUserInteracting) return;
-
-    const id = window.setInterval(() => {
-      if (!mediaItems.length) return;
-
-      const total = mediaItems.length;
-      let next = activeIndex;
-      for (let step = 1; step <= total; step++) {
-        const idx = (activeIndex + step) % total;
-        const it = mediaItems[idx];
-        if (it?.type === "image" && !failedIds.current.has(it.id)) {
-          next = idx;
-          break;
-        }
-      }
-      if (next !== activeIndex) setActiveIndex(next);
-    }, 4000);
-
-    return () => window.clearInterval(id);
-  }, [activeIndex, activeItem, isUserInteracting, isVideoPlaying, mediaItems]);
-
   function markInteractingBriefly() {
-    setIsUserInteracting(true);
     if (interactTimer.current) window.clearTimeout(interactTimer.current);
-    interactTimer.current = window.setTimeout(() => {
-      setIsUserInteracting(false);
-    }, 700);
+    interactTimer.current = window.setTimeout(() => {}, 50);
   }
 
-  // Duplicate the list visually for seamless loop.
+  // Duplicate the list visually for a seamless moving film strip.
   const loopItems = useMemo(() => {
     const base = mediaItems;
-    if (base.length <= 1) return base;
-    // If content is short, repeat more times to ensure it's wider than the screen.
-    if (base.length < 6) return [...base, ...base, ...base];
-    return [...base, ...base];
+    if (!base.length) return base;
+    return [...base, ...base, ...base];
   }, [mediaItems]);
 
-  // Auto-scroll with requestAnimationFrame + scrollLeft reset.
-  useEffect(() => {
-    const strip = stripRef.current;
-    if (!strip || mediaItems.length <= 1) return;
-
-    const speed = 0.45; // 0.35–0.6 px/frame
-
-    const animate = () => {
-      if (!isPausedRef.current && strip) {
-        if (!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
-          strip.scrollLeft += speed;
-          const halfScrollWidth = strip.scrollWidth / 2;
-          if (strip.scrollLeft >= halfScrollWidth) {
-            strip.scrollLeft = 0;
-          }
-        }
-      }
-      animationRef.current = requestAnimationFrame(animate);
-    };
-
-    animationRef.current = requestAnimationFrame(animate);
-
-    return () => {
-      if (animationRef.current) cancelAnimationFrame(animationRef.current);
-    };
-  }, [mediaItems]);
-
-  function pauseAutoLoop() {
-    isPausedRef.current = true;
-    if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
-    timeoutRef.current = null;
+  function pauseStrip() {
+    setIsStripPaused(true);
+    if (stripResumeTimer.current) window.clearTimeout(stripResumeTimer.current);
+    stripResumeTimer.current = null;
   }
 
-  function resumeAutoLoopAfterDelay() {
-    if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
-    timeoutRef.current = window.setTimeout(() => {
-      isPausedRef.current = false;
+  function resumeStripAfterDelay() {
+    if (stripResumeTimer.current) window.clearTimeout(stripResumeTimer.current);
+    stripResumeTimer.current = window.setTimeout(() => {
+      setIsStripPaused(false);
     }, 3000);
   }
 
@@ -294,96 +233,108 @@ export function MobileProjectMediaGallery({
 
       {/* Cinematic strip */}
       <div
-        ref={stripRef}
-        className="thumbnail-strip mt-3 flex w-full gap-2 overflow-x-auto px-1 pb-2 pt-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        style={{ scrollBehavior: "auto", WebkitOverflowScrolling: "touch" as any }}
+        className="mt-3 w-full overflow-hidden"
         onTouchStart={() => {
           markInteractingBriefly();
-          pauseAutoLoop();
+          pauseStrip();
         }}
         onTouchEnd={() => {
           markInteractingBriefly();
-          resumeAutoLoopAfterDelay();
+          resumeStripAfterDelay();
         }}
         onTouchCancel={() => {
           markInteractingBriefly();
-          resumeAutoLoopAfterDelay();
+          resumeStripAfterDelay();
         }}
         onPointerDown={() => {
           markInteractingBriefly();
-          pauseAutoLoop();
+          pauseStrip();
         }}
         onPointerUp={() => {
           markInteractingBriefly();
-          resumeAutoLoopAfterDelay();
+          resumeStripAfterDelay();
         }}
         onPointerCancel={() => {
           markInteractingBriefly();
-          resumeAutoLoopAfterDelay();
+          resumeStripAfterDelay();
         }}
-        onMouseEnter={() => {
-          pauseAutoLoop();
-        }}
-        onMouseLeave={() => {
-          resumeAutoLoopAfterDelay();
-        }}
+        onMouseEnter={pauseStrip}
+        onMouseLeave={resumeStripAfterDelay}
       >
-        {loopItems.map((it, rawIdx) => {
-          const idx = mediaItems.length ? rawIdx % mediaItems.length : rawIdx;
-          const isActive = idx === activeIndex;
-          return (
-            <button
-              key={`${it.id}:${rawIdx}`}
-              ref={(el) => {
-                if (!el) return;
-                thumbRefs.current.set(it.id, el);
-              }}
-              type="button"
-              onClick={() => setActiveFromThumb(idx)}
-              className={`thumbnail-item relative h-12 w-[72px] shrink-0 overflow-hidden rounded-[10px] border-2 bg-[#111] ${
-                isActive
-                  ? "border-brand-orange shadow-sm shadow-brand-orange/25"
-                  : "border-transparent"
-              }`}
-              aria-label={it.type === "video" ? "Video" : "Image"}
-            >
-              {it.type === "image" ? (
-                <img
-                  src={it.url}
-                  alt={it.alt ?? title}
-                  className="h-full w-full object-cover"
-                  loading="lazy"
-                  decoding="async"
-                />
-              ) : it.thumbnailUrl ? (
-                <img
-                  src={it.thumbnailUrl}
-                  alt={it.alt ?? title}
-                  className="h-full w-full object-cover"
-                  loading="lazy"
-                  decoding="async"
-                />
-              ) : (
-                <video
-                  src={it.url}
-                  muted
-                  playsInline
-                  preload="metadata"
-                  className="h-full w-full object-cover opacity-90"
-                />
-              )}
+        <div
+          className={`flex w-max gap-2 ${isStripPaused ? "tg-film-paused" : "tg-film"}`}
+          style={{ animationPlayState: isStripPaused ? ("paused" as const) : ("running" as const) }}
+        >
+          {loopItems.map((it, rawIdx) => {
+            const realIndex = mediaItems.length ? rawIdx % mediaItems.length : rawIdx;
+            const isActive = realIndex === activeIndex;
+            return (
+              <button
+                key={`${it.id}:${rawIdx}`}
+                type="button"
+                onClick={() => setActiveFromThumb(realIndex)}
+                className={`relative h-12 w-[72px] shrink-0 overflow-hidden rounded-[10px] border-2 bg-[#111] ${
+                  isActive
+                    ? "border-brand-orange shadow-sm shadow-brand-orange/25"
+                    : "border-transparent"
+                }`}
+                aria-label={it.type === "video" ? "Video" : "Image"}
+              >
+                {it.type === "image" ? (
+                  <img
+                    src={it.url}
+                    alt={it.alt ?? title}
+                    className="h-full w-full object-cover"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                ) : it.thumbnailUrl ? (
+                  <img
+                    src={it.thumbnailUrl}
+                    alt={it.alt ?? title}
+                    className="h-full w-full object-cover"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                ) : (
+                  <video
+                    src={it.url}
+                    muted
+                    playsInline
+                    preload="metadata"
+                    className="h-full w-full object-cover opacity-90"
+                  />
+                )}
 
-              {it.type === "video" ? (
-                <span className="absolute inset-0 grid place-items-center">
-                  <span className="grid h-6 w-6 place-items-center rounded-full bg-white/90 text-[10px] font-extrabold text-brand-navy">
-                    ▶
+                {it.type === "video" ? (
+                  <span className="absolute inset-0 grid place-items-center">
+                    <span className="grid h-6 w-6 place-items-center rounded-full bg-white/90 text-[10px] font-extrabold text-brand-navy">
+                      ▶
+                    </span>
                   </span>
-                </span>
-              ) : null}
-            </button>
-          );
-        })}
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
       </div>
+
+      <style jsx>{`
+        .tg-film {
+          animation: tg-film-move 25s linear infinite;
+        }
+        .tg-film-paused {
+          animation: tg-film-move 25s linear infinite;
+        }
+        @keyframes tg-film-move {
+          from {
+            transform: translateX(0);
+          }
+          to {
+            transform: translateX(-33.333%);
+          }
+        }
+      `}</style>
 
       {/* Fullscreen overlay fallback (images + videos) */}
       {fullscreen ? (
