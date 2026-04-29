@@ -58,6 +58,14 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
     }
   }, [imgs, vids, selected]);
 
+  // Always render something if media exists (avoids grey/empty frame before effects run)
+  const fallbackSelected = useMemo<Selected | null>(() => {
+    if (imgs[0]) return { kind: "image", src: imgs[0] };
+    if (vids[0]) return { kind: "video", src: vids[0] };
+    return null;
+  }, [imgs, vids]);
+  const effectiveSelected = selected ?? fallbackSelected;
+
   useEffect(() => {
     if (!autoplay) return;
     if (imgs.length < 2) return;
@@ -74,7 +82,7 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
     setSelected(sel);
   }
 
-  const empty = !selected;
+  const empty = !effectiveSelected;
   const sideLabelImages = locale === "ar" ? "صور" : "Images";
   const sideLabelVideos = locale === "ar" ? "فيديو" : "Videos";
 
@@ -84,6 +92,26 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
     for (const src of vids) items.push({ kind: "video", src, key: `v:${src}` });
     return items;
   }, [imgs, vids]);
+
+  // Mobile swipe between media in the main frame
+  const swipeRef = useRef<{
+    startX: number;
+    active: boolean;
+  }>({ startX: 0, active: false });
+
+  const effectiveIndex = useMemo(() => {
+    if (!effectiveSelected) return -1;
+    return mobileItems.findIndex(
+      (it) => it.kind === effectiveSelected.kind && it.src === effectiveSelected.src,
+    );
+  }, [effectiveSelected, mobileItems]);
+
+  function stepMobile(delta: -1 | 1) {
+    if (!mobileItems.length) return;
+    const cur = effectiveIndex >= 0 ? effectiveIndex : 0;
+    const next = (cur + delta + mobileItems.length) % mobileItems.length;
+    choose({ kind: mobileItems[next].kind, src: mobileItems[next].src });
+  }
 
   useEffect(() => {
     if (!isFullscreen) return;
@@ -152,18 +180,31 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
                         : "Add images or videos to this project"}
                     </p>
                   </motion.div>
-                ) : selected.kind === "image" ? (
+                ) : effectiveSelected.kind === "image" ? (
                   <motion.div
-                    key={`img:${selected.src}`}
+                    key={`img:${effectiveSelected.src}`}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.6, ease: "easeOut" }}
                     className="absolute inset-0 will-change-[opacity]"
+                    onPointerDown={(e) => {
+                      swipeRef.current = { startX: e.clientX, active: true };
+                    }}
+                    onPointerUp={(e) => {
+                      if (!swipeRef.current.active) return;
+                      swipeRef.current.active = false;
+                      const dx = e.clientX - swipeRef.current.startX;
+                      if (Math.abs(dx) < 40) return;
+                      stepMobile(dx < 0 ? 1 : -1);
+                    }}
+                    onPointerCancel={() => {
+                      swipeRef.current.active = false;
+                    }}
                   >
                     {/* Soft blurred backdrop so "contain" doesn't feel empty */}
                     <Image
-                      src={selected.src}
+                      src={effectiveSelected.src}
                       alt=""
                       fill
                       aria-hidden
@@ -172,7 +213,7 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
                       priority
                     />
                     <Image
-                      src={selected.src}
+                      src={effectiveSelected.src}
                       alt={title}
                       fill
                       className="object-contain"
@@ -183,18 +224,31 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
                   </motion.div>
                 ) : (
                   <motion.div
-                    key={`vid:${selected.src}`}
+                    key={`vid:${effectiveSelected.src}`}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.45, ease: "easeOut" }}
                     className="absolute inset-0 bg-black/95 will-change-[opacity]"
+                    onPointerDown={(e) => {
+                      swipeRef.current = { startX: e.clientX, active: true };
+                    }}
+                    onPointerUp={(e) => {
+                      if (!swipeRef.current.active) return;
+                      swipeRef.current.active = false;
+                      const dx = e.clientX - swipeRef.current.startX;
+                      if (Math.abs(dx) < 40) return;
+                      stepMobile(dx < 0 ? 1 : -1);
+                    }}
+                    onPointerCancel={() => {
+                      swipeRef.current.active = false;
+                    }}
                   >
                     <video
-                      src={selected.src}
+                      src={effectiveSelected.src}
                       controls
                       playsInline
-                      className="h-full w-full object-cover"
+                      className="h-full w-full object-contain"
                     />
                   </motion.div>
                 )}
@@ -213,7 +267,7 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
                   : "Pick an image/video"}
             </p>
             <div className="flex items-center gap-2">
-              {selected?.kind === "image" ? (
+              {effectiveSelected?.kind === "image" ? (
                 <button
                   type="button"
                   onClick={() => setIsFullscreen(true)}
@@ -249,7 +303,7 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
               <MobileStrip
                 items={mobileItems}
                 title={title}
-                selected={selected}
+                selected={effectiveSelected}
                 onPick={choose}
               />
             ) : (
@@ -295,7 +349,7 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
       </div>
 
       <AnimatePresence>
-        {isFullscreen && selected?.kind === "image" ? (
+        {isFullscreen && effectiveSelected?.kind === "image" ? (
           <motion.div
             key="fs"
             initial={{ opacity: 0 }}
@@ -314,7 +368,7 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
             <div className="mx-auto flex h-full max-w-6xl flex-col px-4 py-16">
               <div className="relative flex-1 overflow-hidden rounded-2xl border border-white/10 bg-black">
                 <Image
-                  src={selected.src}
+                  src={effectiveSelected.src}
                   alt={title}
                   fill
                   className="object-contain"
@@ -332,7 +386,7 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
                         type="button"
                         onClick={() => choose({ kind: "image", src })}
                         className={`relative h-20 w-28 shrink-0 overflow-hidden rounded-xl border transition ${
-                          src === selected.src
+                          src === effectiveSelected.src
                             ? "border-brand-orange"
                             : "border-white/10 hover:border-white/25"
                         }`}
