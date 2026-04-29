@@ -30,6 +30,7 @@ function uniq(items: string[]) {
 export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
   const imgs = useMemo(() => uniq(images), [images]);
   const vids = useMemo(() => uniq(videos).slice(0, 20), [videos]);
+  const mediaHeight = "h-[360px] sm:h-[420px] md:h-[520px] lg:h-[560px]";
 
   const [selected, setSelected] = useState<Selected | null>(() => {
     if (imgs[0]) return { kind: "image", src: imgs[0] };
@@ -69,7 +70,7 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
           <p className="mb-3 text-xs font-bold uppercase tracking-wide text-brand-navy/60">
             {sideLabelVideos}
           </p>
-          <Rail direction="down">
+          <Rail direction="down" className={mediaHeight}>
             {vids.length ? (
               vids.map((v) => (
                 <button
@@ -100,8 +101,10 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
 
         {/* Center viewer */}
         <div className="order-1 md:order-2">
-          <div className="relative overflow-hidden rounded-2xl border border-brand-navy/10 bg-brand-navy/5">
-            <div className="relative aspect-[16/10] w-full">
+          <div
+            className={`relative overflow-hidden rounded-2xl border border-brand-navy/10 bg-brand-navy/5 ${mediaHeight}`}
+          >
+            <div className="relative h-full w-full">
               <AnimatePresence mode="wait">
                 {empty ? (
                   <motion.div
@@ -190,7 +193,7 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
           <p className="mb-3 text-xs font-bold uppercase tracking-wide text-brand-navy/60">
             {sideLabelImages}
           </p>
-          <Rail direction="up">
+          <Rail direction="up" className={mediaHeight}>
             {imgs.length ? (
               imgs.map((src) => (
                 <button
@@ -233,9 +236,11 @@ function EmptyTile({ label }: { label: string }) {
 function Rail({
   children,
   direction,
+  className,
 }: {
   children: React.ReactNode;
   direction: "up" | "down";
+  className?: string;
 }) {
   const items = Array.isArray(children) ? children : [children];
   const doubled = [...items, ...items];
@@ -243,7 +248,9 @@ function Rail({
     direction === "up" ? "tg-marquee-up 16s linear infinite" : "tg-marquee-down 18s linear infinite";
 
   return (
-    <div className="relative h-[520px] overflow-hidden rounded-2xl border border-brand-navy/10 bg-white">
+    <div
+      className={`relative overflow-hidden rounded-2xl border border-brand-navy/10 bg-white ${className || ""}`}
+    >
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-10 bg-gradient-to-b from-white to-transparent" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-10 bg-gradient-to-t from-white to-transparent" />
 
