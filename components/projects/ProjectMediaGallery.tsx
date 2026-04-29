@@ -123,7 +123,7 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
   }, [isFullscreen]);
 
   return (
-    <section className="mx-auto w-full max-w-full overflow-visible rounded-3xl border border-brand-navy/10 bg-white p-4 shadow-sm md:overflow-hidden md:p-6">
+    <section className="mx-auto w-full max-w-full overflow-hidden rounded-3xl border border-brand-navy/10 bg-white p-4 shadow-sm md:p-6">
       <div className="grid max-w-full gap-4 md:grid-cols-[160px_1fr_160px] md:gap-6">
         {/* Left rail (videos) — moves top -> bottom */}
         <div className="order-2 hidden md:block md:order-1">
@@ -550,13 +550,13 @@ function MobileStrip({
   }
 
   return (
-    <div className="relative max-w-full overflow-hidden rounded-2xl border border-brand-navy/10 bg-white">
+    <div className="relative w-full max-w-full overflow-hidden rounded-2xl border border-brand-navy/10 bg-white">
       <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-white to-transparent" />
       <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-white to-transparent" />
 
       <div
         ref={scrollerRef}
-        className="flex snap-x snap-mandatory gap-3 overflow-x-auto p-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex w-full max-w-full snap-x snap-mandatory gap-2 overflow-x-auto p-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         onTouchStart={pauseAndResume}
         onTouchMove={pauseAndResume}
         onPointerDown={pauseAndResume}
@@ -595,7 +595,7 @@ function MobileThumb({
     <button
       type="button"
       onClick={() => onPick({ kind: item.kind, src: item.src })}
-      className={`relative h-12 w-20 shrink-0 snap-start overflow-hidden rounded-xl border ${
+      className={`relative h-10 w-16 shrink-0 snap-start overflow-hidden rounded-lg border ${
         isActive ? "border-brand-orange" : "border-brand-navy/10"
       } ${item.kind === "video" ? "bg-black" : "bg-brand-navy/5"}`}
       aria-label={item.kind === "video" ? "Video" : "Image"}
