@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 type MediaItem = {
   id: string;
@@ -56,6 +56,7 @@ export function MobileProjectMediaGallery({
   const [fullscreen, setFullscreen] = useState<null | { type: "image" | "video"; url: string }>(
     null,
   );
+  const [isStripReady, setIsStripReady] = useState(false);
 
   const interactTimer = useRef<number | null>(null);
   const thumbRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
@@ -105,11 +106,41 @@ export function MobileProjectMediaGallery({
     }, 3000);
   };
 
+  // Initialize strip position after render/measure to prevent starting at the end.
+  useLayoutEffect(() => {
+    const strip = stripRef.current;
+    const firstSet = firstSetRef.current;
+
+    setIsStripReady(false);
+
+    // Reset pause state on page load / media change
+    isPausedRef.current = false;
+    if (pauseTimeoutRef.current) {
+      clearTimeout(pauseTimeoutRef.current);
+      pauseTimeoutRef.current = null;
+    }
+
+    if (!strip || !firstSet || mediaItems.length <= 1) return;
+
+    requestAnimationFrame(() => {
+      strip.scrollLeft = 0;
+      // Some mobile browsers restore previous scroll position after first paint
+      window.setTimeout(() => {
+        if (stripRef.current) stripRef.current.scrollLeft = 0;
+      }, 100);
+
+      requestAnimationFrame(() => {
+        const w = firstSetRef.current?.offsetWidth ?? 0;
+        if (w > 0) setIsStripReady(true);
+      });
+    });
+  }, [mediaItems.length]);
+
   // rAF auto-loop: scrollLeft += speed, and when >= firstSetWidth, subtract it
   useEffect(() => {
     const strip = stripRef.current;
     const first = firstSetRef.current;
-    if (!strip || !first || mediaItems.length <= 1) return;
+    if (!isStripReady || !strip || !first || mediaItems.length <= 1) return;
 
     let frameId: number;
     const speed = 0.35;
@@ -142,7 +173,7 @@ export function MobileProjectMediaGallery({
       if (frameId) cancelAnimationFrame(frameId);
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
-  }, [mediaItems.length]);
+  }, [isStripReady, mediaItems.length]);
 
   function setActiveFromThumb(idx: number) {
     setActiveIndex(idx);
