@@ -153,7 +153,7 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
                       src={selected.src}
                       alt={title}
                       fill
-                      className="object-contain"
+                      className="object-cover"
                       sizes="(max-width:768px) 100vw, 60vw"
                       priority
                     />
@@ -477,6 +477,11 @@ function MobileStrip({
           }
           to {
             transform: translateX(-50%);
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          div[style*='tg-marquee-x'] {
+            animation: none !important;
           }
         }
       `}</style>
