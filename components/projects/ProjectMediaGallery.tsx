@@ -153,7 +153,7 @@ export function ProjectMediaGallery({ locale, title, images, videos }: Props) {
                       src={selected.src}
                       alt={title}
                       fill
-                      className="object-cover"
+                      className="object-cover object-center"
                       sizes="(max-width:768px) 100vw, 60vw"
                       priority
                     />
@@ -416,76 +416,114 @@ function MobileStrip({
   selected: Selected | null;
   onPick: (s: Selected) => void;
 }) {
-  const doubled = [...items, ...items];
-
   return (
     <div className="relative max-w-full overflow-hidden rounded-2xl border border-brand-navy/10 bg-white">
       <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-white to-transparent" />
       <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-white to-transparent" />
 
-      <div
-        className="flex w-max gap-3 p-3"
-        style={{
-          animation: "tg-marquee-x 28s linear infinite",
-          willChange: "transform",
-        }}
-      >
-        {doubled.map((it, idx) => {
-          const isActive =
-            selected?.kind === it.kind && selected?.src === it.src;
-          return (
-            <button
-              key={`${it.key}:${idx}`}
-              type="button"
-              onClick={() => onPick({ kind: it.kind, src: it.src })}
-              className={`relative h-14 w-24 shrink-0 overflow-hidden rounded-xl border ${
-                isActive ? "border-brand-orange" : "border-brand-navy/10"
-              } ${it.kind === "video" ? "bg-black" : "bg-brand-navy/5"}`}
-              aria-label={it.kind === "video" ? "Video" : "Image"}
-            >
-              {it.kind === "image" ? (
-                <Image
-                  src={it.src}
-                  alt={title}
-                  fill
-                  className="object-cover"
-                  sizes="120px"
-                />
-              ) : (
-                <>
-                  <video
-                    src={it.src}
-                    muted
-                    playsInline
-                    preload="metadata"
-                    className="h-full w-full object-cover opacity-90"
-                  />
-                  <div className="absolute bottom-2 left-2 rounded-full bg-white/90 px-2 py-1 text-[10px] font-bold text-brand-navy">
-                    ▶
-                  </div>
-                </>
-              )}
-            </button>
-          );
-        })}
+      {/* Two identical tracks for a seamless loop */}
+      <div className="relative flex gap-3 p-3 [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+        <div
+          className="flex w-max gap-3"
+          style={{ animation: "tg-marquee-track 26s linear infinite" }}
+        >
+          {items.map((it) => (
+            <MobileThumb
+              key={it.key}
+              item={it}
+              title={title}
+              selected={selected}
+              onPick={onPick}
+            />
+          ))}
+        </div>
+        <div
+          className="flex w-max gap-3"
+          style={{ animation: "tg-marquee-track2 26s linear infinite" }}
+        >
+          {items.map((it) => (
+            <MobileThumb
+              key={`${it.key}:2`}
+              item={it}
+              title={title}
+              selected={selected}
+              onPick={onPick}
+            />
+          ))}
+        </div>
       </div>
 
       <style jsx>{`
-        @keyframes tg-marquee-x {
+        @keyframes tg-marquee-track {
           from {
             transform: translateX(0);
           }
           to {
-            transform: translateX(-50%);
+            transform: translateX(-100%);
+          }
+        }
+        @keyframes tg-marquee-track2 {
+          from {
+            transform: translateX(0);
+          }
+          to {
+            transform: translateX(-100%);
           }
         }
         @media (prefers-reduced-motion: reduce) {
-          div[style*='tg-marquee-x'] {
+          div[style*='tg-marquee-track'] {
             animation: none !important;
           }
         }
       `}</style>
     </div>
+  );
+}
+
+function MobileThumb({
+  item,
+  title,
+  selected,
+  onPick,
+}: {
+  item: MobileItem;
+  title: string;
+  selected: Selected | null;
+  onPick: (s: Selected) => void;
+}) {
+  const isActive = selected?.kind === item.kind && selected?.src === item.src;
+  return (
+    <button
+      type="button"
+      onClick={() => onPick({ kind: item.kind, src: item.src })}
+      className={`relative h-14 w-24 shrink-0 overflow-hidden rounded-xl border ${
+        isActive ? "border-brand-orange" : "border-brand-navy/10"
+      } ${item.kind === "video" ? "bg-black" : "bg-brand-navy/5"}`}
+      aria-label={item.kind === "video" ? "Video" : "Image"}
+    >
+      {item.kind === "image" ? (
+        <Image
+          src={item.src}
+          alt={title}
+          fill
+          className="object-cover"
+          sizes="120px"
+        />
+      ) : (
+        <>
+          <video
+            src={item.src}
+            muted
+            playsInline
+            preload="metadata"
+            className="h-full w-full object-cover opacity-90"
+          />
+          <div className="absolute bottom-2 left-2 rounded-full bg-white/90 px-2 py-1 text-[10px] font-bold text-brand-navy">
+            ▶
+          </div>
+        </>
+      )}
+    </button>
   );
 }
 

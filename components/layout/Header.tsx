@@ -17,7 +17,8 @@ export async function Header({ locale }: { locale: string }) {
 
   return (
     <header className="sticky top-0 z-50 bg-brand-navy/85 backdrop-blur-md md:absolute md:inset-x-0 md:top-0 md:bg-transparent md:backdrop-blur-0">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 md:px-6 md:py-5">
+      {/* Desktop row */}
+      <div className="mx-auto hidden max-w-6xl items-center justify-between gap-3 px-4 py-3 md:flex md:px-6 md:py-5">
         <Logo locale={locale} logoUrl={hero.logoUrl || undefined} />
         <nav className="hidden items-center gap-2 md:flex">
           {links.map(({ href, label }) => (
@@ -39,7 +40,7 @@ export async function Header({ locale }: { locale: string }) {
       </div>
       {/* Mobile: single row, one logo only */}
       <div className="mx-auto max-w-6xl px-4 pb-3 md:hidden">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 py-2">
           <div className="rounded-full border border-white/20 bg-white/10 backdrop-blur-md">
             <LocaleSwitcher />
           </div>
