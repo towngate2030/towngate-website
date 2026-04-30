@@ -13,7 +13,9 @@ export function Logo({
   // Slightly larger by default across mobile + desktop
   const cls =
     imgClassName ??
-    (logoUrl ? "h-12 w-auto md:h-16 lg:h-18" : "h-10 w-auto md:h-14 lg:h-16");
+    (logoUrl
+      ? "h-12 w-auto md:h-[72px] lg:h-[80px]"
+      : "h-10 w-auto md:h-[64px] lg:h-[72px]");
 
   return (
     <Link

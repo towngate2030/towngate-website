@@ -50,7 +50,7 @@ export function MobileMenu({
             <Logo
               locale={locale}
               logoUrl={logoUrl}
-              imgClassName="h-11 w-auto md:h-14 lg:h-16"
+              imgClassName="h-14 w-auto md:h-[72px] lg:h-[80px]"
             />
           </div>
 
