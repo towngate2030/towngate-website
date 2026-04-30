@@ -10,6 +10,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
 import { routing } from "@/i18n/routing";
+import { ClientCacheBuster } from "@/components/ClientCacheBuster";
 
 type Props = {
   children: React.ReactNode;
@@ -55,6 +56,7 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   return (
     <NextIntlClientProvider messages={messages}>
+      <ClientCacheBuster />
       <Header locale={locale} />
       {children}
       <Footer locale={locale} />
