@@ -10,7 +10,10 @@ export function Logo({
   logoUrl?: string;
   imgClassName?: string;
 }) {
-  const cls = imgClassName ?? (logoUrl ? "h-10 w-auto md:h-14 lg:h-16" : "h-9 w-auto");
+  // Slightly larger by default across mobile + desktop
+  const cls =
+    imgClassName ??
+    (logoUrl ? "h-12 w-auto md:h-16 lg:h-18" : "h-10 w-auto md:h-14 lg:h-16");
 
   return (
     <Link
