@@ -10,15 +10,22 @@ export function Logo({
   logoUrl?: string;
   imgClassName?: string;
 }) {
+  const cls = imgClassName ?? (logoUrl ? "h-10 w-auto md:h-14 lg:h-16" : "h-9 w-auto");
+
   return (
-    <Link href="/" className="flex items-center gap-2 shrink-0" locale={locale}>
+    <Link
+      href="/"
+      className="tg-logo flex shrink-0 items-center gap-2"
+      locale={locale}
+      aria-label="TownGate"
+    >
       {logoUrl ? (
         <Image
           src={logoUrl}
           alt="TownGate"
           width={220}
           height={64}
-          className={imgClassName ?? "h-10 w-auto md:h-14 lg:h-16"}
+          className={`tg-logo__img ${cls}`}
           priority
         />
       ) : (
@@ -27,7 +34,7 @@ export function Logo({
           alt="TownGate"
           width={160}
           height={40}
-          className={imgClassName ?? "h-9 w-auto"}
+          className={`tg-logo__img ${cls}`}
           priority
         />
       )}
