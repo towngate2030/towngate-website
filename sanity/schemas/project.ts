@@ -128,8 +128,8 @@ export const project = defineType({
                       validation: (r) => r.required(),
                     }),
                     defineField({
-                      name: "optionalPdf",
-                      title: "Optional PDF URL",
+                      name: "downloadImage",
+                      title: "Download image URL (optional)",
                       type: "url",
                     }),
                     defineField({

@@ -29,12 +29,16 @@ export function UnitTypesLayouts({
 
   const visibleGroups = useMemo(() => groups || [], [groups]);
   const [activeGroupIndex, setActiveGroupIndex] = useState(0);
+  const [selectedItemIndex, setSelectedItemIndex] = useState(0);
   const [viewer, setViewer] = useState<ViewerOpen | null>(null);
 
   const maxGroupIdx = Math.max(0, visibleGroups.length - 1);
   const effectiveGroupIndex = clamp(activeGroupIndex, 0, maxGroupIdx);
   const activeGroup = visibleGroups[effectiveGroupIndex];
   const activeItems: SiteUnitLayoutItem[] = activeGroup?.items ?? [];
+  const maxItemIdx = Math.max(0, activeItems.length - 1);
+  const effectiveItemIndex = clamp(selectedItemIndex, 0, maxItemIdx);
+  const selectedItem = activeItems[effectiveItemIndex];
 
   const groupLabel = useCallback(
     (g: SiteUnitLayoutGroup) => (locale === "ar" ? g.groupNameAr || g.groupNameEn : g.groupNameEn || g.groupNameAr),
@@ -48,6 +52,21 @@ export function UnitTypesLayouts({
 
   if (!visibleGroups.length) return null;
 
+  if (!activeItems.length) return null;
+
+  const total = activeItems.length;
+  const counterText = `${effectiveItemIndex + 1} / ${total}`;
+
+  function goPrev() {
+    if (!total) return;
+    setSelectedItemIndex((i) => (i - 1 + total) % total);
+  }
+
+  function goNext() {
+    if (!total) return;
+    setSelectedItemIndex((i) => (i + 1) % total);
+  }
+
   return (
     <section className="mt-10" aria-label={title}>
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
@@ -58,7 +77,7 @@ export function UnitTypesLayouts({
         <div
           role="tablist"
           aria-label={locale === "ar" ? "مجموعات المخططات" : "Layout groups"}
-          className="flex gap-2 overflow-x-auto px-1 pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="flex gap-2 overflow-x-auto px-1 pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:flex-wrap md:justify-center md:overflow-visible"
         >
           {visibleGroups.map((g, idx) => {
             const selected = idx === effectiveGroupIndex;
@@ -68,9 +87,12 @@ export function UnitTypesLayouts({
                 type="button"
                 role="tab"
                 aria-selected={selected}
-                onClick={() => setActiveGroupIndex(idx)}
+                onClick={() => {
+                  setActiveGroupIndex(idx);
+                  setSelectedItemIndex(0);
+                }}
                 className={[
-                  "shrink-0 rounded-full px-4 py-2 text-sm font-extrabold transition",
+                  "shrink-0 rounded-full px-3 py-2 text-[13px] font-extrabold transition md:px-4 md:text-sm",
                   selected
                     ? "bg-brand-orange text-white shadow-md shadow-brand-orange/25"
                     : "bg-white text-brand-navy/80 ring-1 ring-brand-navy/10 hover:ring-brand-orange/35",
@@ -83,43 +105,68 @@ export function UnitTypesLayouts({
         </div>
       </div>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {activeItems.map((it, idx) => (
-          <article
-            key={`${it.image}-${it.order}-${idx}`}
-            className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-brand-navy/10"
-          >
-            <div className="relative aspect-[4/3] w-full bg-brand-navy/5">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={it.image} alt="" className="h-full w-full object-cover" loading="lazy" />
-            </div>
-            <div className="p-4">
-              <p className="text-sm font-bold leading-snug text-brand-navy md:text-base">{itemLabel(it)}</p>
-              <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-                <button
-                  type="button"
-                  onClick={() => setViewer({ groupIndex: effectiveGroupIndex, itemIndex: idx })}
-                  className="inline-flex flex-1 items-center justify-center rounded-xl bg-brand-orange px-4 py-2.5 text-sm font-extrabold text-white shadow-sm shadow-brand-orange/20 transition hover:brightness-110"
-                >
-                  {locale === "ar" ? "عرض المخطط" : "View Layout"}
-                </button>
+      <article className="mt-6 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-brand-navy/10">
+        <div className="relative w-full bg-brand-navy/5">
+          <div className="relative aspect-[16/11] w-full md:aspect-[21/11]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={selectedItem?.image}
+              alt={selectedItem ? itemLabel(selectedItem) : ""}
+              className="h-full w-full object-contain p-3 md:p-6"
+              loading="lazy"
+            />
+          </div>
+        </div>
 
-                {it.optionalPdf ? (
-                  <a
-                    href={it.optionalPdf}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    download
-                    className="inline-flex flex-1 items-center justify-center rounded-xl border-2 border-brand-navy/15 px-4 py-2.5 text-sm font-extrabold text-brand-navy transition hover:border-brand-orange/40"
-                  >
-                    {locale === "ar" ? "تحميل PDF" : "Download PDF"}
-                  </a>
-                ) : null}
-              </div>
+        <div className="p-4 md:p-6">
+          <div className="flex items-start justify-between gap-3">
+            <p className="text-sm font-extrabold leading-snug text-brand-navy md:text-lg">{selectedItem ? itemLabel(selectedItem) : ""}</p>
+            <span className="shrink-0 rounded-full bg-brand-navy/5 px-3 py-1 text-xs font-extrabold text-brand-navy/70">
+              {counterText}
+            </span>
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={goPrev}
+              className="inline-flex min-w-[92px] flex-1 items-center justify-center rounded-xl border-2 border-brand-navy/15 px-3 py-2.5 text-[12px] font-extrabold text-brand-navy transition hover:border-brand-orange/40 md:flex-none md:px-4 md:text-sm"
+            >
+              {locale === "ar" ? "السابق" : "Previous"}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setViewer({ groupIndex: effectiveGroupIndex, itemIndex: effectiveItemIndex })}
+              className="inline-flex min-w-[140px] flex-[2] items-center justify-center rounded-xl bg-brand-orange px-4 py-2.5 text-[12px] font-extrabold text-white shadow-sm shadow-brand-orange/20 transition hover:brightness-110 md:flex-none md:min-w-[200px] md:px-6 md:text-sm"
+            >
+              {locale === "ar" ? "عرض المخطط" : "View Layout"}
+            </button>
+
+            <button
+              type="button"
+              onClick={goNext}
+              className="inline-flex min-w-[92px] flex-1 items-center justify-center rounded-xl border-2 border-brand-navy/15 px-3 py-2.5 text-[12px] font-extrabold text-brand-navy transition hover:border-brand-orange/40 md:flex-none md:px-4 md:text-sm"
+            >
+              {locale === "ar" ? "التالي" : "Next"}
+            </button>
+          </div>
+
+          {selectedItem?.downloadImage ? (
+            <div className="mt-3">
+              <a
+                href={selectedItem.downloadImage}
+                download
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex w-full items-center justify-center rounded-xl bg-white px-4 py-2.5 text-[12px] font-extrabold text-brand-navy ring-1 ring-brand-navy/10 transition hover:ring-brand-orange/35 md:w-auto md:px-5 md:text-sm"
+              >
+                {locale === "ar" ? "تحميل الصورة" : "Download Photo"}
+              </a>
             </div>
-          </article>
-        ))}
-      </div>
+          ) : null}
+        </div>
+      </article>
 
       {viewer ? (
         <LayoutViewerModal
@@ -177,24 +224,24 @@ function LayoutViewerModal({
     setTy(0);
   }, []);
 
-  const canPrev = index > 0;
-  const canNext = index < items.length - 1;
+  const total = items.length;
+  const canNav = total > 1;
 
   const goPrev = useCallback(() => {
-    if (!canPrev) return;
+    if (!canNav) return;
     setScale(1);
     setTx(0);
     setTy(0);
-    setIndex((i) => i - 1);
-  }, [canPrev]);
+    setIndex((i) => (i - 1 + total) % total);
+  }, [canNav, total]);
 
   const goNext = useCallback(() => {
-    if (!canNext) return;
+    if (!canNav) return;
     setScale(1);
     setTx(0);
     setTy(0);
-    setIndex((i) => i + 1);
-  }, [canNext]);
+    setIndex((i) => (i + 1) % total);
+  }, [canNav, total]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -375,11 +422,11 @@ function LayoutViewerModal({
         <div className={`mx-auto max-w-6xl ${navRowClass}`}>
           <button
             type="button"
-            disabled={!canPrev}
+            disabled={!canNav}
             onClick={goPrev}
             className={[
               "rounded-full px-4 py-2 text-sm font-extrabold text-white ring-1 ring-white/15 transition",
-              canPrev ? "bg-white/10 hover:bg-white/15" : "opacity-40",
+              canNav ? "bg-white/10 hover:bg-white/15" : "opacity-40",
             ].join(" ")}
           >
             {locale === "ar" ? "السابق" : "Previous"}
@@ -394,11 +441,11 @@ function LayoutViewerModal({
 
           <button
             type="button"
-            disabled={!canNext}
+            disabled={!canNav}
             onClick={goNext}
             className={[
               "rounded-full px-4 py-2 text-sm font-extrabold text-white ring-1 ring-white/15 transition",
-              canNext ? "bg-white/10 hover:bg-white/15" : "opacity-40",
+              canNav ? "bg-white/10 hover:bg-white/15" : "opacity-40",
             ].join(" ")}
           >
             {locale === "ar" ? "التالي" : "Next"}

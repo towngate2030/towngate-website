@@ -158,7 +158,7 @@ export type SiteUnitLayoutItem = {
   itemNameAr: string;
   itemNameEn: string;
   image: string;
-  optionalPdf?: string;
+  downloadImage?: string;
   order: number;
   isActive: boolean;
 };
@@ -211,19 +211,19 @@ function normalizeUnitLayoutGroups(raw: unknown): SiteUnitLayoutGroup[] {
             itemNameAr?: string;
             itemNameEn?: string;
             image?: string;
-            optionalPdf?: string;
+            downloadImage?: string;
             order?: number;
             isActive?: boolean;
           };
 
           const image = isHttpUrl(x.image) ? x.image.trim() : "";
-          const optionalPdf = isHttpUrl(x.optionalPdf) ? x.optionalPdf.trim() : undefined;
+          const downloadImage = isHttpUrl(x.downloadImage) ? x.downloadImage.trim() : undefined;
 
           const item: SiteUnitLayoutItem = {
             itemNameAr: String(x.itemNameAr || "").trim(),
             itemNameEn: String(x.itemNameEn || "").trim(),
             image,
-            optionalPdf,
+            downloadImage,
             order: Number(x.order || 0),
             isActive: Boolean(x.isActive),
           };
