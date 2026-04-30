@@ -36,7 +36,9 @@ body {
     transform 240ms ease,
     filter 240ms ease;
   will-change: transform, filter;
-  animation: tgLogoIn 420ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+  animation:
+    tgLogoIn 420ms cubic-bezier(0.2, 0.9, 0.2, 1) both,
+    tgLogoFloat 4.8s ease-in-out 600ms infinite;
 }
 
 .tg-logo::after {
@@ -53,6 +55,7 @@ body {
   transform: scale(0.98);
   transition: opacity 240ms ease, transform 240ms ease;
   pointer-events: none;
+  animation: tgLogoGlow 4.8s ease-in-out 600ms infinite;
 }
 
 .tg-logo:hover .tg-logo__img,
@@ -80,12 +83,35 @@ body {
   }
 }
 
+@keyframes tgLogoFloat {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-1.5px) scale(1.012);
+  }
+}
+
+@keyframes tgLogoGlow {
+  0%,
+  100% {
+    opacity: 0.22;
+    transform: scale(0.985);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(1);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .tg-logo__img {
     animation: none;
     transition: none;
   }
   .tg-logo::after {
+    animation: none;
     transition: none;
   }
 }
