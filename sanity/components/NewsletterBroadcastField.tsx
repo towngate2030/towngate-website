@@ -49,8 +49,9 @@ export function NewsletterBroadcastField(_props: StringInputProps) {
         <Stack space={3}>
           <Text weight="semibold">Send to subscribers</Text>
           <Text size={1}>
-            Add <code>SANITY_STUDIO_APP_ORIGIN</code> to your Studio <code>.env</code> (production site URL, no trailing
-            slash), then restart <code>sanity dev</code> or redeploy hosted Studio.
+            In the project <code>.env</code> (same folder as <code>sanity.config.ts</code>), set either{" "}
+            <code>NEXT_PUBLIC_SITE_URL</code> or <code>SANITY_STUDIO_APP_ORIGIN</code> to your live site (https, no
+            trailing slash), then restart <code>sanity dev</code> or redeploy hosted Studio.
           </Text>
         </Stack>
       </Card>

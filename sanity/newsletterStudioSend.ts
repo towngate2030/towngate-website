@@ -1,4 +1,10 @@
-const APP_ORIGIN = (process.env.SANITY_STUDIO_APP_ORIGIN || "").replace(/\/$/, "");
+/** Studio-only override; otherwise reuses the same public URL as the Next.js app. */
+function resolveAppOrigin(): string {
+  const raw = (process.env.SANITY_STUDIO_APP_ORIGIN || process.env.NEXT_PUBLIC_SITE_URL || "").trim();
+  return raw.replace(/\/$/, "");
+}
+
+const APP_ORIGIN = resolveAppOrigin();
 const SEND_SECRET = (process.env.SANITY_STUDIO_NEWSLETTER_SEND_SECRET || "").trim();
 
 export function studioAppOriginConfigured(): boolean {
@@ -21,7 +27,11 @@ export async function postNewsletterSendFromStudio(
   forceResend: boolean,
 ): Promise<{ ok: boolean; alertMessage: string }> {
   if (!APP_ORIGIN) {
-    return { ok: false, alertMessage: "SANITY_STUDIO_APP_ORIGIN is not set in the Studio environment." };
+    return {
+      ok: false,
+      alertMessage:
+        "Site URL not set. Add SANITY_STUDIO_APP_ORIGIN or NEXT_PUBLIC_SITE_URL to Studio .env and restart sanity dev.",
+    };
   }
   if (!studioDirectSendConfigured()) {
     return { ok: false, alertMessage: "Direct send is not configured in Studio." };
