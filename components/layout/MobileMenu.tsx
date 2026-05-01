@@ -2,19 +2,17 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import Image from "next/image";
 import { useLocale } from "next-intl";
 import { Link, usePathname, useRouter } from "@/i18n/routing";
-import { Logo } from "./Logo";
 
 type Item = { href: string; label: string };
 
 export function MobileMenu({
   locale,
-  logoUrl,
   items,
 }: {
   locale: string;
-  logoUrl?: string;
   items: Item[];
 }) {
   const [open, setOpen] = useState(false);
@@ -41,17 +39,27 @@ export function MobileMenu({
   }, [items]);
 
   return (
-    <div className="md:hidden">
-      {/* Fixed yellow bar */}
+    <div className="tg-mobile-menu-root md:hidden">
+      {/* Fixed yellow bar — mark only (full wordmark lives in desktop header only) */}
       <div className="fixed inset-x-0 top-0 z-50 bg-amber-100/95 shadow-sm">
         <div className="relative mx-auto flex min-h-16 max-w-6xl items-center px-4 py-3">
-          {/* Centered logo */}
           <div className="absolute left-1/2 -translate-x-1/2">
-            <Logo
+            <Link
+              href="/"
               locale={locale}
-              logoUrl={logoUrl}
-              imgClassName="h-14 w-auto md:h-[72px] lg:h-[80px]"
-            />
+              translate="no"
+              className="inline-flex shrink-0"
+              aria-label="Home"
+            >
+              <Image
+                src="/brand/towngate-mark.svg"
+                alt=""
+                width={48}
+                height={48}
+                className="h-11 w-auto"
+                priority
+              />
+            </Link>
           </div>
 
           {/* Hamburger (always on the RIGHT) */}

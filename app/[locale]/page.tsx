@@ -36,6 +36,7 @@ export default async function HomePage({ params }: Props) {
           backgroundVideoUrl={videoHero.backgroundVideoUrl}
           posterUrl={videoHero.posterUrl}
           title={videoHero.title[loc]}
+          tagline={videoHero.tagline[loc]}
           videoMuted={videoHero.videoMuted}
         />
       ) : (

@@ -17,6 +17,8 @@ export type HeroVideoLeadProps = {
   posterUrl?: string;
   /** اسم المشروع من Sanity */
   title: string;
+  /** جملة تحت العنوان من Sanity (لو فاضية يُعرض نص heroLead.subtitle من الترجمة) */
+  tagline?: string;
   videoMuted: boolean;
 };
 
@@ -24,6 +26,7 @@ export function HeroVideoLead({
   backgroundVideoUrl,
   posterUrl,
   title,
+  tagline,
   videoMuted,
 }: HeroVideoLeadProps) {
   const locale = useLocale() as "ar" | "en";
@@ -89,7 +92,7 @@ export function HeroVideoLead({
             aria-hidden
           />
           <p className="mt-6 max-w-2xl text-base leading-relaxed text-white/90 md:text-xl">
-            {th("subtitle")}
+            {tagline?.trim() ? tagline.trim() : th("subtitle")}
           </p>
         </div>
 

@@ -11,6 +11,8 @@ export type HeroVideoLeadSettings = {
   posterUrl?: string;
   /** اسم المشروع من Sanity (عربي / إنجليزي). */
   title: Record<Locale, string>;
+  /** جملة تحت العنوان؛ لو فاضية في Sanity نستخدم النص الافتراضي من الترجمة. */
+  tagline: Record<Locale, string>;
   videoMuted: boolean;
   saveLeadsToSanity: boolean;
 };
@@ -32,6 +34,8 @@ export async function getHeroVideoLeadSettings(): Promise<HeroVideoLeadSettings 
     /** Legacy fields قبل إعادة تسمية الحقول */
     titleAr?: string;
     titleEn?: string;
+    taglineAr?: string;
+    taglineEn?: string;
     videoMuted?: boolean;
     saveLeadsToSanity?: boolean;
   };
@@ -44,6 +48,8 @@ export async function getHeroVideoLeadSettings(): Promise<HeroVideoLeadSettings 
       "posterUrl": posterImage.asset->url,
       "projectNameAr": coalesce(projectNameAr, titleAr),
       "projectNameEn": coalesce(projectNameEn, titleEn),
+      taglineAr,
+      taglineEn,
       videoMuted,
       saveLeadsToSanity
     }`,
@@ -62,6 +68,10 @@ export async function getHeroVideoLeadSettings(): Promise<HeroVideoLeadSettings 
     title: {
       ar: String(doc.projectNameAr || "").trim(),
       en: String(doc.projectNameEn || "").trim(),
+    },
+    tagline: {
+      ar: String(doc.taglineAr || "").trim(),
+      en: String(doc.taglineEn || "").trim(),
     },
     videoMuted: doc.videoMuted !== false,
     saveLeadsToSanity: doc.saveLeadsToSanity !== false,

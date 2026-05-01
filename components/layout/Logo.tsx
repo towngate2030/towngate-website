@@ -31,7 +31,7 @@ export function Logo({
           alt="TownGate"
           width={220}
           height={64}
-          className={`tg-logo__img ${cls}`}
+          className={`tg-logo__img max-h-[80px] max-w-[min(72vw,280px)] object-contain object-start ${cls}`}
           priority
         />
       ) : (

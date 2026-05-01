@@ -29,6 +29,20 @@ export const heroVideoLead = defineType({
       validation: (r) => r.max(120),
     }),
     defineField({
+      name: "taglineAr",
+      title: "الجملة تحت اسم المشروع (عربي)",
+      type: "text",
+      rows: 3,
+      description: "تظهر بين اسم المشروع ونموذج التسجيل. اتركها فاضية لو حابة النص الافتراضي من الموقع.",
+    }),
+    defineField({
+      name: "taglineEn",
+      title: "الجملة تحت اسم المشروع (إنجليزي)",
+      type: "text",
+      rows: 3,
+      description: "Same line under the title (English). Leave empty to use the site default.",
+    }),
+    defineField({
       name: "backgroundVideo",
       title: "رفع الفيديو (خلفية الصفحة)",
       type: "file",

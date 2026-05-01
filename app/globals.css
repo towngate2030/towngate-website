@@ -22,6 +22,18 @@ body {
   font-family: var(--font-sans);
 }
 
+/* Never show mobile + desktop headers at once (avoids two logos when breakpoints overlap) */
+@media (min-width: 768px) {
+  .tg-mobile-menu-root {
+    display: none !important;
+  }
+}
+@media (max-width: 767px) {
+  .tg-desktop-header {
+    display: none !important;
+  }
+}
+
 /* Logo animation (subtle, brand-safe) */
 .tg-logo {
   position: relative;
