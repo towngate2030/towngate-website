@@ -6,13 +6,14 @@ export function getCanonicalSiteOrigin(): string {
 }
 
 /**
- * Absolute newsletter verification URL. Requires NEXT_PUBLIC_SITE_URL in production.
+ * Absolute URL for the public confirmation page (user confirms via POST — not the API GET).
+ * Requires NEXT_PUBLIC_SITE_URL in production.
  */
 export function buildNewsletterVerifyLink(token: string): string {
   const base = getCanonicalSiteOrigin();
   if (!base) return "";
   const qs = new URLSearchParams({ token }).toString();
-  return `${base}/api/newsletter/verify?${qs}`;
+  return `${base}/newsletter/verify?${qs}`;
 }
 
 /**

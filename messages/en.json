@@ -60,7 +60,18 @@
     "button": "Subscribe",
     "sending": "Subscribing…",
     "success": "You’re subscribed. Thank you.",
-    "error": "Could not subscribe. Try again or contact us."
+    "error": "Could not subscribe. Try again or contact us.",
+    "verify": {
+      "pageTitle": "Confirm your subscription",
+      "headlineSuccess": "Subscription confirmed",
+      "headlineIssue": "Confirmation issue",
+      "confirmIntro": "You’re one step away. Press the button below to confirm your TownGate newsletter email. (This avoids automated link checks from invalidating your confirmation.)",
+      "submit": "Confirm subscription",
+      "ok": "Your subscription has been confirmed successfully.",
+      "invalid": "This confirmation link is invalid or was already used. Please subscribe again from the website.",
+      "expired": "This confirmation link has expired. Please subscribe again.",
+      "server": "Something went wrong on our side. Please try again later."
+    }
   },
   "footer": {
     "rights": "All rights reserved."

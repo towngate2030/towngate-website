@@ -5,34 +5,34 @@ import { resolveRedirectOrigin } from "@/lib/siteUrl";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req: Request) {
-  const url = new URL(req.url);
-  const token = String(url.searchParams.get("token") || "").trim();
+type SubscriberRow = {
+  _id: string;
+  status?: string | null;
+  verificationTokenExpiresAt?: string | null;
+};
+
+function redirectTo(req: Request, path: string): NextResponse {
+  const origin = resolveRedirectOrigin(req);
+  if (!origin) {
+    return NextResponse.json(
+      { ok: false, error: "Site URL is not configured (set NEXT_PUBLIC_SITE_URL)" },
+      { status: 500 },
+    );
+  }
+  return NextResponse.redirect(new URL(path, `${origin}/`));
+}
+
+async function verifyWithToken(req: Request, token: string): Promise<NextResponse> {
   console.log("Token received:", token);
 
-  const origin = resolveRedirectOrigin(req);
-  const redirectTo = (path: string) => {
-    if (!origin) {
-      return NextResponse.json(
-        { ok: false, error: "Site URL is not configured (set NEXT_PUBLIC_SITE_URL)" },
-        { status: 500 },
-      );
-    }
-    return NextResponse.redirect(new URL(path, `${origin}/`));
-  };
-
-  if (!token || token.length < 16) return redirectTo("/newsletter/verify?status=invalid");
+  if (!token || token.length < 16) {
+    return redirectTo(req, "/newsletter/verify?status=invalid");
+  }
 
   const write = getSanityWriteClient();
-  if (!write) return redirectTo("/newsletter/verify?status=server");
+  if (!write) return redirectTo(req, "/newsletter/verify?status=server");
 
   const tokenHash = sha256Base64Url(token);
-
-  type SubscriberRow = {
-    _id: string;
-    status?: string | null;
-    verificationTokenExpiresAt?: string | null;
-  };
 
   const subscriber = await write.fetch<SubscriberRow | null>(
     `*[_type=="newsletterSubscriber" && verificationTokenHash==$h][0]{_id,status,verificationTokenExpiresAt}`,
@@ -40,13 +40,13 @@ export async function GET(req: Request) {
   );
   console.log("Subscriber found:", subscriber);
 
-  if (!subscriber?._id) return redirectTo("/newsletter/verify?status=invalid");
+  if (!subscriber?._id) return redirectTo(req, "/newsletter/verify?status=invalid");
 
   const exp = subscriber.verificationTokenExpiresAt
     ? Date.parse(subscriber.verificationTokenExpiresAt)
     : NaN;
   if (!Number.isFinite(exp) || exp < Date.now()) {
-    return redirectTo("/newsletter/verify?status=expired");
+    return redirectTo(req, "/newsletter/verify?status=expired");
   }
 
   const now = new Date().toISOString();
@@ -61,9 +61,42 @@ export async function GET(req: Request) {
       .commit();
   } catch (e) {
     console.error("[newsletter/verify] Sanity patch failed:", e);
-    return redirectTo("/newsletter/verify?status=server");
+    return redirectTo(req, "/newsletter/verify?status=server");
   }
 
-  return redirectTo("/newsletter/verify?status=ok");
+  return redirectTo(req, "/newsletter/verify?status=ok");
 }
 
+/**
+ * Legacy / scanner-safe: opening the API URL in a browser only redirects to the public page
+ * with the same token — it does NOT verify. Verification happens on POST only.
+ */
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const token = String(url.searchParams.get("token") || "").trim();
+
+  if (!token || token.length < 16) {
+    return redirectTo(req, "/newsletter/verify?status=invalid");
+  }
+
+  const qs = new URLSearchParams({ token }).toString();
+  return redirectTo(req, `/newsletter/verify?${qs}`);
+}
+
+export async function POST(req: Request) {
+  let token = "";
+  try {
+    const ct = req.headers.get("content-type") || "";
+    if (ct.includes("application/json")) {
+      const body = (await req.json()) as { token?: string };
+      token = String(body?.token ?? "").trim();
+    } else {
+      const fd = await req.formData();
+      token = String(fd.get("token") ?? "").trim();
+    }
+  } catch {
+    token = "";
+  }
+
+  return verifyWithToken(req, token);
+}
