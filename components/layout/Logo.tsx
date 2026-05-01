@@ -20,6 +20,7 @@ export function Logo({
   return (
     <Link
       href="/"
+      translate="no"
       className="tg-logo flex shrink-0 items-center gap-2"
       locale={locale}
       aria-label="TownGate"

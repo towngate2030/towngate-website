@@ -60,8 +60,11 @@
   },
   "leadForm": {
     "name": "Name",
-    "phone": "Phone",
-    "unitInterest": "Interest (optional)",
+    "phone": "Phone number",
+    "phoneNational": "Number without country code",
+    "unitTypePlaceholder": "Unit type (optional)",
+    "unitResidential": "Residential",
+    "unitCommercial": "Commercial",
     "message": "Message (optional)",
     "submit": "Submit",
     "sending": "Sending…",

@@ -4,6 +4,11 @@ import { useReducedMotion } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import {
+  combineLeadPhone,
+  DEFAULT_PHONE_DIAL,
+  LEAD_PHONE_COUNTRIES,
+} from "@/components/home/leadPhoneCountries";
 
 const OVERLAY_OPACITY = 0.5;
 
@@ -133,9 +138,13 @@ function LeadFormFields({
       return;
     }
 
+    const dial = String(fd.get("phoneDial") || DEFAULT_PHONE_DIAL).trim();
+    const local = String(fd.get("phoneLocal") || "").trim();
+    const phone = combineLeadPhone(dial, local);
+
     const payload = {
       name: String(fd.get("name") || "").trim(),
-      phone: String(fd.get("phone") || "").trim(),
+      phone,
       unitInterest: String(fd.get("unitInterest") || "").trim(),
       message: String(fd.get("message") || "").trim(),
       locale,
@@ -179,28 +188,54 @@ function LeadFormFields({
         placeholder={`${t("name")} *`}
         className="rounded-xl border border-white/25 bg-white/10 px-4 py-3 text-sm text-white placeholder:text-white/55 outline-none ring-brand-orange/30 focus:ring-2"
       />
-      <label className="sr-only" htmlFor="lead-phone">
-        {t("phone")}
-      </label>
-      <input
-        id="lead-phone"
-        name="phone"
-        type="tel"
-        required
-        autoComplete="tel"
-        inputMode="tel"
-        placeholder={`${t("phone")} *`}
-        className="rounded-xl border border-white/25 bg-white/10 px-4 py-3 text-sm text-white placeholder:text-white/55 outline-none ring-brand-orange/30 focus:ring-2"
-      />
+      <span className="sr-only">{t("phone")}</span>
+      <div
+        dir="ltr"
+        className="flex gap-2 rounded-xl border border-white/25 bg-white/10 px-2 py-1.5 ring-brand-orange/30 focus-within:ring-2"
+      >
+        <label className="sr-only" htmlFor="lead-phone-dial">
+          Country
+        </label>
+        <select
+          id="lead-phone-dial"
+          name="phoneDial"
+          defaultValue={DEFAULT_PHONE_DIAL}
+          className="shrink-0 rounded-lg border border-white/20 bg-black/30 px-1.5 py-2 text-center text-lg leading-none outline-none"
+          aria-label={t("phone")}
+        >
+          {LEAD_PHONE_COUNTRIES.map((c) => (
+            <option key={c.dial} value={c.dial}>
+              {c.flag} {c.dial}
+            </option>
+          ))}
+        </select>
+        <label className="sr-only" htmlFor="lead-phone-local">
+          {t("phoneNational")}
+        </label>
+        <input
+          id="lead-phone-local"
+          name="phoneLocal"
+          type="tel"
+          required
+          autoComplete="tel-national"
+          inputMode="numeric"
+          placeholder={`${t("phoneNational")} *`}
+          className="min-w-0 flex-1 bg-transparent px-2 py-2 text-sm text-white outline-none placeholder:text-white/55"
+        />
+      </div>
       <label className="sr-only" htmlFor="lead-unit">
-        {t("unitInterest")}
+        {t("unitTypePlaceholder")}
       </label>
-      <input
+      <select
         id="lead-unit"
         name="unitInterest"
-        placeholder={t("unitInterest")}
-        className="rounded-xl border border-white/25 bg-white/10 px-4 py-3 text-sm text-white placeholder:text-white/55 outline-none ring-brand-orange/30 focus:ring-2"
-      />
+        defaultValue=""
+        className="rounded-xl border border-white/25 bg-white/10 px-4 py-3 text-sm text-white outline-none ring-brand-orange/30 focus:ring-2 [&>option]:bg-brand-navy [&>option]:text-white"
+      >
+        <option value="">{t("unitTypePlaceholder")}</option>
+        <option value="residential">{t("unitResidential")}</option>
+        <option value="commercial">{t("unitCommercial")}</option>
+      </select>
       <label className="sr-only" htmlFor="lead-message">
         {t("message")}
       </label>

@@ -41,6 +41,7 @@ body {
     tgLogoFloat 4.8s ease-in-out 600ms infinite;
 }
 
+/* Glow only on hover — idle animation looked like a duplicate logo next to the mark */
 .tg-logo::after {
   content: "";
   position: absolute;
@@ -55,7 +56,6 @@ body {
   transform: scale(0.98);
   transition: opacity 240ms ease, transform 240ms ease;
   pointer-events: none;
-  animation: tgLogoGlow 4.8s ease-in-out 600ms infinite;
 }
 
 .tg-logo:hover .tg-logo__img,
@@ -90,18 +90,6 @@ body {
   }
   50% {
     transform: translateY(-1.5px) scale(1.012);
-  }
-}
-
-@keyframes tgLogoGlow {
-  0%,
-  100% {
-    opacity: 0.22;
-    transform: scale(0.985);
-  }
-  50% {
-    opacity: 0.45;
-    transform: scale(1);
   }
 }
 

@@ -61,7 +61,10 @@
   "leadForm": {
     "name": "الاسم",
     "phone": "رقم الهاتف",
-    "unitInterest": "نوع الوحدة (اختياري)",
+    "phoneNational": "الرقم بدون كود الدولة",
+    "unitTypePlaceholder": "نوع الوحدة (اختياري)",
+    "unitResidential": "سكني",
+    "unitCommercial": "تجاري",
     "message": "رسالة (اختياري)",
     "submit": "إرسال",
     "sending": "جاري الإرسال…",
