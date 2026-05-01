@@ -35,11 +35,7 @@ export default async function HomePage({ params }: Props) {
           backgroundVideoUrl={videoHero.backgroundVideoUrl}
           posterUrl={videoHero.posterUrl}
           title={videoHero.title[loc]}
-          subtitle={videoHero.subtitle[loc]}
-          formTitle={videoHero.formTitle[loc]}
-          buttonText={videoHero.buttonText[loc]}
-          formPosition={videoHero.formPosition}
-          overlayOpacity={videoHero.overlayOpacity}
+          videoMuted={videoHero.videoMuted}
         />
       ) : (
         <Hero

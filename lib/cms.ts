@@ -5,19 +5,17 @@ export type Locale = "ar" | "en";
 
 export type HeroVideoLeadSettings = {
   isActive: boolean;
+  /** Resolved MP4/WebM URL (من ملف مرفوع أو من الرابط الاختياري). */
   backgroundVideoUrl: string;
   posterUrl?: string;
+  /** اسم المشروع من Sanity (عربي / إنجليزي). */
   title: Record<Locale, string>;
-  subtitle: Record<Locale, string>;
-  formTitle: Record<Locale, string>;
-  buttonText: Record<Locale, string>;
-  formPosition: "center" | "left" | "right";
-  overlayOpacity: number;
+  videoMuted: boolean;
   saveLeadsToSanity: boolean;
 };
 
 /**
- * Homepage hero video + lead section (Sanity). Returns null when inactive or not configured.
+ * Homepage hero video + lead section (Sanity). Returns null when inactive or no video source.
  */
 export async function getHeroVideoLeadSettings(): Promise<HeroVideoLeadSettings | null> {
   const pid = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
@@ -25,65 +23,46 @@ export async function getHeroVideoLeadSettings(): Promise<HeroVideoLeadSettings 
 
   type Doc = {
     isActive?: boolean;
+    videoFromFile?: string | null;
     backgroundVideoUrl?: string;
     posterUrl?: string | null;
+    projectNameAr?: string;
+    projectNameEn?: string;
+    /** Legacy fields قبل إعادة تسمية الحقول */
     titleAr?: string;
     titleEn?: string;
-    subtitleAr?: string;
-    subtitleEn?: string;
-    formTitleAr?: string;
-    formTitleEn?: string;
-    buttonTextAr?: string;
-    buttonTextEn?: string;
-    formPosition?: string;
-    overlayOpacity?: number;
+    videoMuted?: boolean;
     saveLeadsToSanity?: boolean;
   };
 
   const doc = await sanityClient.fetch<Doc | null>(
     `*[_type=="heroVideoLead"][0]{
       isActive,
+      "videoFromFile": backgroundVideo.asset->url,
       backgroundVideoUrl,
       "posterUrl": posterImage.asset->url,
-      titleAr, titleEn, subtitleAr, subtitleEn,
-      formTitleAr, formTitleEn,
-      buttonTextAr, buttonTextEn,
-      formPosition,
-      overlayOpacity,
+      "projectNameAr": coalesce(projectNameAr, titleAr),
+      "projectNameEn": coalesce(projectNameEn, titleEn),
+      videoMuted,
       saveLeadsToSanity
     }`,
   );
 
-  if (!doc?.isActive || !String(doc.backgroundVideoUrl || "").trim()) return null;
+  const fromFile = String(doc?.videoFromFile || "").trim();
+  const fromUrl = String(doc?.backgroundVideoUrl || "").trim();
+  const videoUrl = fromFile || fromUrl;
 
-  const overlayOpacity =
-    typeof doc.overlayOpacity === "number" && Number.isFinite(doc.overlayOpacity)
-      ? Math.min(1, Math.max(0, doc.overlayOpacity))
-      : 0.5;
-
-  const pos = doc.formPosition;
-  const formPosition: HeroVideoLeadSettings["formPosition"] =
-    pos === "left" || pos === "right" || pos === "center" ? pos : "center";
+  if (!doc?.isActive || !videoUrl) return null;
 
   return {
     isActive: true,
-    backgroundVideoUrl: String(doc.backgroundVideoUrl).trim(),
+    backgroundVideoUrl: videoUrl,
     posterUrl: doc.posterUrl ? String(doc.posterUrl) : undefined,
-    title: { ar: String(doc.titleAr || "").trim(), en: String(doc.titleEn || "").trim() },
-    subtitle: {
-      ar: String(doc.subtitleAr || "").trim(),
-      en: String(doc.subtitleEn || "").trim(),
+    title: {
+      ar: String(doc.projectNameAr || "").trim(),
+      en: String(doc.projectNameEn || "").trim(),
     },
-    formTitle: {
-      ar: String(doc.formTitleAr || "").trim(),
-      en: String(doc.formTitleEn || "").trim(),
-    },
-    buttonText: {
-      ar: String(doc.buttonTextAr || "").trim(),
-      en: String(doc.buttonTextEn || "").trim(),
-    },
-    formPosition,
-    overlayOpacity,
+    videoMuted: doc.videoMuted !== false,
     saveLeadsToSanity: doc.saveLeadsToSanity !== false,
   };
 }

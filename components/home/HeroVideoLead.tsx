@@ -5,37 +5,26 @@ import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
+const OVERLAY_OPACITY = 0.5;
+
 export type HeroVideoLeadProps = {
   backgroundVideoUrl: string;
   posterUrl?: string;
+  /** اسم المشروع من Sanity */
   title: string;
-  subtitle: string;
-  formTitle: string;
-  buttonText: string;
-  formPosition: "center" | "left" | "right";
-  overlayOpacity: number;
+  videoMuted: boolean;
 };
 
 export function HeroVideoLead({
   backgroundVideoUrl,
   posterUrl,
   title,
-  subtitle,
-  formTitle,
-  buttonText,
-  formPosition,
-  overlayOpacity,
+  videoMuted,
 }: HeroVideoLeadProps) {
   const locale = useLocale() as "ar" | "en";
+  const th = useTranslations("heroLead");
   const prefersReducedMotion = useReducedMotion();
   const [status, setStatus] = useState<"idle" | "loading" | "ok" | "err">("idle");
-
-  const justify =
-    formPosition === "center"
-      ? "justify-center"
-      : formPosition === "left"
-        ? "justify-start"
-        : "justify-end";
 
   useEffect(() => {
     if (!prefersReducedMotion) return;
@@ -56,7 +45,7 @@ export function HeroVideoLead({
           src={backgroundVideoUrl}
           poster={posterUrl}
           autoPlay
-          muted
+          muted={videoMuted}
           loop
           playsInline
           preload="metadata"
@@ -79,7 +68,7 @@ export function HeroVideoLead({
 
       <div
         className="absolute inset-0 z-[1] bg-black"
-        style={{ opacity: overlayOpacity }}
+        style={{ opacity: OVERLAY_OPACITY }}
         aria-hidden
       />
 
@@ -94,30 +83,23 @@ export function HeroVideoLead({
             className="mx-auto mt-4 h-0.5 w-14 rounded-full bg-brand-orange"
             aria-hidden
           />
-          {subtitle ? (
-            <p className="mt-6 max-w-2xl text-base leading-relaxed text-white/90 md:text-xl">
-              {subtitle}
-            </p>
-          ) : null}
+          <p className="mt-6 max-w-2xl text-base leading-relaxed text-white/90 md:text-xl">
+            {th("subtitle")}
+          </p>
         </div>
 
-        <div className={`mt-10 flex w-full md:mt-14 ${justify}`}>
+        <div className="mt-10 flex w-full justify-center md:mt-14">
           <div className="w-full max-w-md rounded-2xl border border-white/15 bg-black/45 p-5 shadow-xl backdrop-blur-md md:p-6">
-            {formTitle ? (
-              <>
-                <h2 className="text-center text-lg font-bold text-white md:text-xl">
-                  {formTitle}
-                </h2>
-                <div
-                  className="mx-auto mt-2 h-0.5 w-10 rounded-full bg-brand-orange"
-                  aria-hidden
-                />
-              </>
-            ) : null}
+            <h2 className="text-center text-lg font-bold text-white md:text-xl">
+              {th("formTitle")}
+            </h2>
+            <div
+              className="mx-auto mt-2 h-0.5 w-10 rounded-full bg-brand-orange"
+              aria-hidden
+            />
 
             <LeadFormFields
               locale={locale}
-              buttonText={buttonText}
               status={status}
               onSubmitting={(v) => setStatus(v)}
             />
@@ -130,16 +112,15 @@ export function HeroVideoLead({
 
 function LeadFormFields({
   locale,
-  buttonText,
   status,
   onSubmitting,
 }: {
   locale: "ar" | "en";
-  buttonText: string;
   status: "idle" | "loading" | "ok" | "err";
   onSubmitting: (s: "idle" | "loading" | "ok" | "err") => void;
 }) {
   const t = useTranslations("leadForm");
+  const th = useTranslations("heroLead");
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -235,7 +216,7 @@ function LeadFormFields({
         disabled={status === "loading" || status === "ok"}
         className="mt-2 rounded-xl bg-brand-orange px-5 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-brand-orange/25 transition hover:brightness-110 disabled:opacity-60"
       >
-        {status === "loading" ? t("sending") : buttonText || t("submit")}
+        {status === "loading" ? t("sending") : th("submit")}
       </button>
       {status === "ok" ? (
         <p className="text-center text-sm font-semibold text-green-300">{t("success")}</p>
