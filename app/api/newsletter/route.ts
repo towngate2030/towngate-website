@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getSanityWriteClient } from "@/lib/sanityWrite";
 
 function isEmail(s: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
@@ -24,40 +25,47 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid email" }, { status: 400 });
   }
 
-  const to = process.env.CONTACT_EMAIL || "Towngate2030@gmail.com";
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.RESEND_FROM;
-
-  if (apiKey && from) {
-    const html = `<p><strong>New newsletter subscriber</strong></p><p>${escapeHtml(email)}</p>`;
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
+  const write = getSanityWriteClient();
+  if (!write) {
+    return NextResponse.json(
+      {
+        error:
+          "Newsletter storage is not configured (set SANITY_API_WRITE_TOKEN with Editor access on Vercel).",
       },
-      body: JSON.stringify({
-        from,
-        to: [to],
-        subject: `[TownGate newsletter] ${email}`,
-        html,
-      }),
-    });
-    if (!res.ok) {
-      console.error("Newsletter Resend error:", await res.text());
-      return NextResponse.json({ error: "Send failed" }, { status: 502 });
+      { status: 503 },
+    );
+  }
+
+  const existingId = await write.fetch<string | null>(
+    `*[_type == "newsletterSubscriber" && email == $email][0]._id`,
+    { email },
+  );
+
+  const now = new Date().toISOString();
+
+  try {
+    if (existingId) {
+      await write
+        .patch(existingId)
+        .set({
+          active: true,
+          subscribedAt: now,
+          source: "website_footer",
+        })
+        .commit();
+    } else {
+      await write.create({
+        _type: "newsletterSubscriber",
+        email,
+        subscribedAt: now,
+        active: true,
+        source: "website_footer",
+      });
     }
-  } else {
-    console.info("[newsletter] new subscriber (no Resend):", email);
+  } catch (e) {
+    console.error("[newsletter] Sanity write failed:", e);
+    return NextResponse.json({ error: "Could not save subscription" }, { status: 502 });
   }
 
   return NextResponse.json({ ok: true });
-}
-
-function escapeHtml(s: string) {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
 }

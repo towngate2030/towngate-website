@@ -61,6 +61,16 @@ export default async function InternalAdminEntryPage() {
         <div className="grid gap-4 md:grid-cols-2">
           <PanelCard title="Projects" body="Add/edit projects (coming next)." />
           <PanelCard title="Posts" body="News & updates (coming next)." />
+          <a
+            href="/tg-cp-internal/newsletter"
+            className="rounded-2xl border border-brand-orange/40 bg-brand-orange/10 p-5 transition hover:bg-brand-orange/15"
+          >
+            <p className="text-sm font-extrabold text-white">Newsletter</p>
+            <p className="mt-2 text-xs leading-relaxed text-tg-cream/80">
+              عرض المشتركين/الإصدارات وإرسال النشرة لكل الإيميلات المسجّلة (يتطلب إعدادات السيرفر).
+            </p>
+            <p className="mt-3 text-xs font-extrabold text-brand-orange">Open →</p>
+          </a>
         </div>
 
         <div className="flex flex-wrap gap-3">
