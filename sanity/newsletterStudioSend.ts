@@ -1,7 +1,7 @@
-/** Studio-only override; otherwise reuses the same public URL as the Next.js app. */
+/** Only `SANITY_STUDIO_*` vars are inlined into the Studio browser bundle (Sanity CLI). */
 function resolveAppOrigin(): string {
-  const raw = (process.env.SANITY_STUDIO_APP_ORIGIN || process.env.NEXT_PUBLIC_SITE_URL || "").trim();
-  return raw.replace(/\/$/, "");
+  const raw = (typeof process !== "undefined" && process.env.SANITY_STUDIO_APP_ORIGIN) || "";
+  return String(raw).trim().replace(/\/$/, "");
 }
 
 const APP_ORIGIN = resolveAppOrigin();
@@ -30,7 +30,7 @@ export async function postNewsletterSendFromStudio(
     return {
       ok: false,
       alertMessage:
-        "Site URL not set. Add SANITY_STUDIO_APP_ORIGIN or NEXT_PUBLIC_SITE_URL to Studio .env and restart sanity dev.",
+        "Site URL not set. Add SANITY_STUDIO_APP_ORIGIN to .env (same URL as production, no trailing slash) and restart sanity dev.",
     };
   }
   if (!studioDirectSendConfigured()) {

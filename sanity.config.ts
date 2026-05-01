@@ -1,4 +1,3 @@
-import "./sanity/patchStudioEnv";
 import { defineConfig } from "sanity";
 import { structureTool } from "sanity/structure";
 import { schemaTypes } from "./sanity/schemas";
