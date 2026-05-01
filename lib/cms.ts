@@ -3,6 +3,91 @@ import { getFeaturedProjects as getSeedFeatured, getProjects as getSeedProjects 
 
 export type Locale = "ar" | "en";
 
+export type HeroVideoLeadSettings = {
+  isActive: boolean;
+  backgroundVideoUrl: string;
+  posterUrl?: string;
+  title: Record<Locale, string>;
+  subtitle: Record<Locale, string>;
+  formTitle: Record<Locale, string>;
+  buttonText: Record<Locale, string>;
+  formPosition: "center" | "left" | "right";
+  overlayOpacity: number;
+  saveLeadsToSanity: boolean;
+};
+
+/**
+ * Homepage hero video + lead section (Sanity). Returns null when inactive or not configured.
+ */
+export async function getHeroVideoLeadSettings(): Promise<HeroVideoLeadSettings | null> {
+  const pid = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
+  if (!pid || pid === "00000000") return null;
+
+  type Doc = {
+    isActive?: boolean;
+    backgroundVideoUrl?: string;
+    posterUrl?: string | null;
+    titleAr?: string;
+    titleEn?: string;
+    subtitleAr?: string;
+    subtitleEn?: string;
+    formTitleAr?: string;
+    formTitleEn?: string;
+    buttonTextAr?: string;
+    buttonTextEn?: string;
+    formPosition?: string;
+    overlayOpacity?: number;
+    saveLeadsToSanity?: boolean;
+  };
+
+  const doc = await sanityClient.fetch<Doc | null>(
+    `*[_type=="heroVideoLead"][0]{
+      isActive,
+      backgroundVideoUrl,
+      "posterUrl": posterImage.asset->url,
+      titleAr, titleEn, subtitleAr, subtitleEn,
+      formTitleAr, formTitleEn,
+      buttonTextAr, buttonTextEn,
+      formPosition,
+      overlayOpacity,
+      saveLeadsToSanity
+    }`,
+  );
+
+  if (!doc?.isActive || !String(doc.backgroundVideoUrl || "").trim()) return null;
+
+  const overlayOpacity =
+    typeof doc.overlayOpacity === "number" && Number.isFinite(doc.overlayOpacity)
+      ? Math.min(1, Math.max(0, doc.overlayOpacity))
+      : 0.5;
+
+  const pos = doc.formPosition;
+  const formPosition: HeroVideoLeadSettings["formPosition"] =
+    pos === "left" || pos === "right" || pos === "center" ? pos : "center";
+
+  return {
+    isActive: true,
+    backgroundVideoUrl: String(doc.backgroundVideoUrl).trim(),
+    posterUrl: doc.posterUrl ? String(doc.posterUrl) : undefined,
+    title: { ar: String(doc.titleAr || "").trim(), en: String(doc.titleEn || "").trim() },
+    subtitle: {
+      ar: String(doc.subtitleAr || "").trim(),
+      en: String(doc.subtitleEn || "").trim(),
+    },
+    formTitle: {
+      ar: String(doc.formTitleAr || "").trim(),
+      en: String(doc.formTitleEn || "").trim(),
+    },
+    buttonText: {
+      ar: String(doc.buttonTextAr || "").trim(),
+      en: String(doc.buttonTextEn || "").trim(),
+    },
+    formPosition,
+    overlayOpacity,
+    saveLeadsToSanity: doc.saveLeadsToSanity !== false,
+  };
+}
+
 export type HeroSettings = {
   logoUrl?: string;
   heroBgUrl: string;

@@ -1,11 +1,19 @@
 import { getTranslations } from "next-intl/server";
 import { Hero } from "@/components/home/Hero";
+import { HeroVideoLead } from "@/components/home/HeroVideoLead";
 import { SectionHeading } from "@/components/SectionHeading";
 import { ProjectCard } from "@/components/projects/ProjectCard";
-import { getFeaturedProjectsForSite, getHeroSettings, getValueBoxes } from "@/lib/cms";
+import {
+  getFeaturedProjectsForSite,
+  getHeroSettings,
+  getHeroVideoLeadSettings,
+  getValueBoxes,
+} from "@/lib/cms";
 import type { Project } from "@/lib/projects";
 
 type Props = { params: Promise<{ locale: string }> };
+
+export const revalidate = 60;
 
 export default async function HomePage({ params }: Props) {
   const { locale } = await params;
@@ -13,22 +21,37 @@ export default async function HomePage({ params }: Props) {
   const thome = await getTranslations("home");
   const tp = await getTranslations("projects");
   const hero = await getHeroSettings();
+  const videoHero = await getHeroVideoLeadSettings();
   const boxes = await getValueBoxes();
   const featured = await getFeaturedProjectsForSite();
   const first = featured?.[0];
   const detailsHref = first ? `/projects/${first.slug}` : "/projects";
+  const loc = locale as "ar" | "en";
 
   return (
     <>
-      <Hero
-        locale={locale}
-        bgUrl={hero.heroBgUrl || undefined}
-        logoUrl={hero.logoUrl || undefined}
-        kicker={hero.kicker[locale as "ar" | "en"]}
-        title={hero.title[locale as "ar" | "en"]}
-        subtitle={hero.subtitle[locale as "ar" | "en"]}
-        primaryCta={{ href: detailsHref, label: th("ctaProjects") }}
-      />
+      {videoHero ? (
+        <HeroVideoLead
+          backgroundVideoUrl={videoHero.backgroundVideoUrl}
+          posterUrl={videoHero.posterUrl}
+          title={videoHero.title[loc]}
+          subtitle={videoHero.subtitle[loc]}
+          formTitle={videoHero.formTitle[loc]}
+          buttonText={videoHero.buttonText[loc]}
+          formPosition={videoHero.formPosition}
+          overlayOpacity={videoHero.overlayOpacity}
+        />
+      ) : (
+        <Hero
+          locale={locale}
+          bgUrl={hero.heroBgUrl || undefined}
+          logoUrl={hero.logoUrl || undefined}
+          kicker={hero.kicker[loc]}
+          title={hero.title[loc]}
+          subtitle={hero.subtitle[loc]}
+          primaryCta={{ href: detailsHref, label: th("ctaProjects") }}
+        />
+      )}
       <section className="mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-20">
         <SectionHeading
           title={locale === "ar" ? "مشاريع مميزة" : "Featured projects"}
