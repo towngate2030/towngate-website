@@ -25,6 +25,8 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@sanity/icons": "^3.7.4",
+    "@sanity/ui": "^3.1.14",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

@@ -2,9 +2,12 @@
 
 import { useEffect, useState } from "react";
 import type { DocumentActionComponent } from "sanity";
-
-const APP_ORIGIN = (process.env.SANITY_STUDIO_APP_ORIGIN || "").replace(/\/$/, "");
-const SEND_SECRET = (process.env.SANITY_STUDIO_NEWSLETTER_SEND_SECRET || "").trim();
+import {
+  openNewsletterAdminTab,
+  postNewsletterSendFromStudio,
+  studioAppOriginConfigured,
+  studioDirectSendConfigured,
+} from "./newsletterStudioSend";
 
 export const newsletterSendAction: DocumentActionComponent = (props) => {
   const { type, draft, published, ready } = props;
@@ -17,7 +20,7 @@ export const newsletterSendAction: DocumentActionComponent = (props) => {
 
   if (type !== "newsletterIssue") return null;
 
-  if (!APP_ORIGIN) {
+  if (!studioAppOriginConfigured()) {
     return {
       label: "Send to all",
       disabled: true,
@@ -29,8 +32,7 @@ export const newsletterSendAction: DocumentActionComponent = (props) => {
   const doc = draft || published;
   const status = (doc as { status?: string } | null)?.status;
   const alreadySent = status === "sent";
-  const sendUrl = `${APP_ORIGIN}/api/newsletter/send`;
-  const canDirectSend = SEND_SECRET.length >= 24;
+  const canDirectSend = studioDirectSendConfigured();
 
   return {
     label: busy ? "Sending…" : "Send to all",
@@ -56,44 +58,15 @@ export const newsletterSendAction: DocumentActionComponent = (props) => {
           void (async () => {
             setBusy(true);
             try {
-              const res = await fetch(sendUrl, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${SEND_SECRET}`,
-                },
-                body: JSON.stringify({ issueId, forceResend: alreadySent }),
-              });
-              const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
-              if (!res.ok) {
-                const fail = Array.isArray(data.failures) ? (data.failures as string[]).join("\n") : "";
-                window.alert(`Send failed: ${String(data.error || res.status)}${fail ? `\n${fail}` : ""}`);
-                return;
-              }
-              const fail = Array.isArray(data.failures) ? (data.failures as string[]).filter(Boolean) : [];
-              const ids = Array.isArray(data.resendEmailIds)
-                ? (data.resendEmailIds as string[]).filter(Boolean)
-                : [];
-              window.alert(
-                [
-                  `Sent ${String(data.sent)} / ${String(data.attempted)}.`,
-                  fail.length ? `Some failed:\n${fail.join("\n")}` : "",
-                  ids.length ? `Resend IDs: ${ids.join(", ")}` : "",
-                ]
-                  .filter(Boolean)
-                  .join("\n"),
-              );
-            } catch (e) {
-              window.alert(e instanceof Error ? e.message : "Network error");
+              const r = await postNewsletterSendFromStudio(issueId, alreadySent);
+              window.alert(r.alertMessage);
             } finally {
               setBusy(false);
             }
           })();
           return;
         }
-        const u = new URL("/tg-cp-internal/newsletter", APP_ORIGIN);
-        u.searchParams.set("issue", issueId);
-        window.open(u.toString(), "_blank", "noopener,noreferrer");
+        openNewsletterAdminTab(issueId);
       },
       onCancel: () => {},
     },

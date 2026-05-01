@@ -1,6 +1,7 @@
 import { defineConfig } from "sanity";
 import { structureTool } from "sanity/structure";
 import { newsletterSendAction } from "./sanity/newsletterSendAction";
+import { newsletterSendInspector } from "./sanity/newsletterSendInspector";
 import { schemaTypes } from "./sanity/schemas";
 
 // Hosted Sanity Studio build does not reliably get Next.js env vars.
@@ -17,8 +18,9 @@ export default defineConfig({
   plugins: [structureTool()],
   schema: { types: schemaTypes },
   document: {
-    actions: (prev, ctx) =>
-      ctx.schemaType === "newsletterIssue" ? [...prev, newsletterSendAction] : prev,
+    // Always register; the hook returns null for non–newsletter-issue types (schemaType filter was unreliable).
+    actions: (prev) => [...prev, newsletterSendAction],
+    inspectors: (prev) => [newsletterSendInspector, ...prev],
   },
 });
 
