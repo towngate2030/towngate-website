@@ -36,7 +36,7 @@ export default async function NewsletterAdminPage({
   );
 
   const subscriberCount = await sanityClient.fetch<number>(
-    `count(*[_type=="newsletterSubscriber" && active != false && defined(email)])`,
+    `count(*[_type=="newsletterSubscriber" && (status=="verified" || (!defined(status) && active==true)) && defined(email)])`,
   );
 
   return (

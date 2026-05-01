@@ -8,14 +8,26 @@ export function NewsletterSignup() {
   const [status, setStatus] = useState<"idle" | "loading" | "ok" | "err">(
     "idle",
   );
+  const [detail, setDetail] = useState<string>("");
+
+  function looksLikeEmail(s: string) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+  }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setStatus("loading");
+    setDetail("");
     const form = e.currentTarget;
     const fd = new FormData(form);
     const email = String(fd.get("email") || "").trim();
     const website = String(fd.get("website") || "").trim();
+
+    if (!email || !looksLikeEmail(email)) {
+      setStatus("err");
+      setDetail("Invalid email");
+      return;
+    }
 
     try {
       const res = await fetch("/api/newsletter", {
@@ -23,11 +35,21 @@ export function NewsletterSignup() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, website }),
       });
-      if (!res.ok) throw new Error("bad");
+      const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+      if (!res.ok) {
+        setStatus("err");
+        setDetail(String(data.error || "Request failed"));
+        return;
+      }
       setStatus("ok");
+      const msg = String(data.message || "");
+      if (msg === "already_subscribed") setDetail("You are already subscribed.");
+      else if (msg === "verification_sent") setDetail("Check your email to confirm your subscription.");
+      else if (msg === "pending_verification") setDetail("Check your email to confirm your subscription.");
       form.reset();
     } catch {
       setStatus("err");
+      setDetail("Network error");
     }
   }
 
@@ -67,10 +89,10 @@ export function NewsletterSignup() {
         </button>
       </form>
       {status === "ok" ? (
-        <p className="mt-2 text-xs font-semibold text-green-300">{t("success")}</p>
+        <p className="mt-2 text-xs font-semibold text-green-300">{detail || t("success")}</p>
       ) : null}
       {status === "err" ? (
-        <p className="mt-2 text-xs font-semibold text-red-300">{t("error")}</p>
+        <p className="mt-2 text-xs font-semibold text-red-300">{detail || t("error")}</p>
       ) : null}
     </div>
   );

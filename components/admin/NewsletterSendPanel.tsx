@@ -39,7 +39,7 @@ export function NewsletterSendPanel({
     setBusyId(issueId);
     setMessage("");
     try {
-      const res = await fetch("/api/newsletter/send", {
+      const res = await fetch("/api/newsletter/broadcast", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

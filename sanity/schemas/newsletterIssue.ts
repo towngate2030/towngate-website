@@ -73,9 +73,41 @@ export const newsletterIssue = defineType({
       validation: (r) => r.required(),
     }),
     defineField({
+      name: "sendStatus",
+      title: "Send status",
+      type: "string",
+      readOnly: true,
+      options: {
+        list: [
+          { title: "Not sent", value: "not_sent" },
+          { title: "Sending", value: "sending" },
+          { title: "Sent", value: "sent" },
+          { title: "Failed", value: "failed" },
+        ],
+      },
+    }),
+    defineField({
       name: "sentAt",
       title: "Sent at",
       type: "datetime",
+      readOnly: true,
+    }),
+    defineField({
+      name: "sentBy",
+      title: "Sent by",
+      type: "string",
+      readOnly: true,
+    }),
+    defineField({
+      name: "sentCount",
+      title: "Sent count",
+      type: "number",
+      readOnly: true,
+    }),
+    defineField({
+      name: "failedCount",
+      title: "Failed count",
+      type: "number",
       readOnly: true,
     }),
     defineField({

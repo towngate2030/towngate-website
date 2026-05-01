@@ -36,7 +36,7 @@ export async function postNewsletterSendFromStudio(
   if (!studioDirectSendConfigured()) {
     return { ok: false, alertMessage: "Direct send is not configured in Studio." };
   }
-  const sendUrl = `${APP_ORIGIN}/api/newsletter/send`;
+  const sendUrl = `${APP_ORIGIN}/api/newsletter/broadcast`;
   try {
     const res = await fetch(sendUrl, {
       method: "POST",

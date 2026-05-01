@@ -1,5 +1,6 @@
 import { defineConfig } from "sanity";
 import { structureTool } from "sanity/structure";
+import { newsletterBroadcastAction } from "./sanity/newsletterBroadcastAction";
 import { schemaTypes } from "./sanity/schemas";
 
 // Hosted Sanity Studio build does not reliably get Next.js env vars.
@@ -15,5 +16,8 @@ export default defineConfig({
   basePath: "/studio",
   plugins: [structureTool()],
   schema: { types: schemaTypes },
+  document: {
+    actions: (prev, ctx) => (ctx.schemaType === "newsletterIssue" ? [...prev, newsletterBroadcastAction] : prev),
+  },
 });
 
