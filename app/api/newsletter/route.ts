@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSanityWriteClient } from "@/lib/sanityWrite";
 import { addHoursIso, normalizeEmail, randomToken, sha256Base64Url } from "@/lib/newsletter";
+import { buildNewsletterVerifyLink, getCanonicalSiteOrigin } from "@/lib/siteUrl";
 
 const VERIFY_TOKEN_HOURS = 24;
 
@@ -80,23 +81,64 @@ export async function POST(req: Request) {
     }
 
     const apiKey = process.env.RESEND_API_KEY;
-    const from = process.env.RESEND_FROM;
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-    if (!apiKey || !from || !siteUrl) {
+    const fromRaw = process.env.RESEND_FROM?.trim();
+    const siteOrigin = getCanonicalSiteOrigin();
+    if (!apiKey || !fromRaw || !siteOrigin) {
       return NextResponse.json(
         { ok: true, message: "pending_verification" },
         { status: 202 },
       );
     }
 
-    const verifyUrl = new URL("/api/newsletter/verify", siteUrl);
-    verifyUrl.searchParams.set("token", token);
+    const verifyUrl = buildNewsletterVerifyLink(token);
+    if (!verifyUrl) {
+      return NextResponse.json(
+        { ok: true, message: "pending_verification" },
+        { status: 202 },
+      );
+    }
 
+    /** HTML attribute escape for URLs in href/display. */
+    const escAttr = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+    const hrefEsc = escAttr(verifyUrl);
     const html = `
-      <p>Please confirm your email subscription to TownGate updates:</p>
-      <p><a href="${verifyUrl.toString()}">Confirm subscription</a></p>
-      <p>If you did not request this, you can ignore this email.</p>
-    `;
+<!DOCTYPE html>
+<html><body style="font-family:system-ui,Segoe UI,sans-serif;line-height:1.5;color:#111;">
+  <p>Hi,</p>
+  <p>Thanks for joining the TownGate newsletter. We send occasional updates about new projects,
+  announcements, and what we&apos;re building in Egypt.</p>
+  <p>Please confirm your email so we know it&apos;s really you. This link stays active for ${VERIFY_TOKEN_HOURS} hours:</p>
+  <p style="margin:28px 0;">
+    <a href="${hrefEsc}"
+       style="background:#ff6600;color:white;padding:12px 20px;border-radius:8px;text-decoration:none;display:inline-block;font-weight:600;">
+      Confirm Subscription
+    </a>
+  </p>
+  <p>If the button does not work in your inbox, copy and paste this address into your browser:</p>
+  <p style="word-break:break-all;"><a href="${hrefEsc}">${hrefEsc}</a></p>
+  <p>If you did not subscribe, you can ignore this message—you won&apos;t be added.</p>
+  <p style="margin-top:32px;color:#555;font-size:14px;">— TownGate</p>
+</body></html>
+`;
+
+    const textBody = [
+      "Hi,",
+      "",
+      `Thanks for joining the TownGate newsletter. Confirm your subscription by opening this link (valid ${VERIFY_TOKEN_HOURS} hours):`,
+      "",
+      verifyUrl,
+      "",
+      "If you did not subscribe, ignore this email.",
+      "",
+      "— TownGate",
+    ].join("\n");
+
+    const fromHeader =
+      fromRaw.includes("<") && fromRaw.includes(">")
+        ? fromRaw
+        : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fromRaw)
+          ? `TownGate <${fromRaw}>`
+          : fromRaw;
 
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -105,10 +147,11 @@ export async function POST(req: Request) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from,
+        from: fromHeader,
         to: [email],
         subject: "Confirm your TownGate subscription",
         html,
+        text: textBody,
       }),
     });
     if (!res.ok) {

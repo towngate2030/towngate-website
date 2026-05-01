@@ -8,7 +8,7 @@ export default async function NewsletterVerifyPage({
 
   const message =
     status === "ok"
-      ? "You're subscribed. Thanks for confirming your email."
+      ? "Your subscription has been confirmed successfully."
       : status === "expired"
         ? "This confirmation link has expired. Please subscribe again."
         : status === "server"
