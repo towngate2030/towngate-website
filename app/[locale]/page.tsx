@@ -13,7 +13,8 @@ import type { Project } from "@/lib/projects";
 
 type Props = { params: Promise<{ locale: string }> };
 
-export const revalidate = 60;
+/** Always fetch fresh CMS content after Publish (avoid stale homepage ISR/cache). */
+export const dynamic = "force-dynamic";
 
 export default async function HomePage({ params }: Props) {
   const { locale } = await params;

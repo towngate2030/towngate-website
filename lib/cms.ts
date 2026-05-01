@@ -1,4 +1,5 @@
 import { sanityClient } from "@/lib/sanity";
+import { sanityFreshClient } from "@/lib/sanityFresh";
 import { getFeaturedProjects as getSeedFeatured, getProjects as getSeedProjects } from "@/lib/projects";
 
 export type Locale = "ar" | "en";
@@ -35,7 +36,7 @@ export async function getHeroVideoLeadSettings(): Promise<HeroVideoLeadSettings 
     saveLeadsToSanity?: boolean;
   };
 
-  const doc = await sanityClient.fetch<Doc | null>(
+  const doc = await sanityFreshClient.fetch<Doc | null>(
     `*[_type=="heroVideoLead"][0]{
       isActive,
       "videoFromFile": backgroundVideo.asset->url,
