@@ -132,14 +132,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Already sent (pass forceResend to resend)" }, { status: 409 });
   }
 
-  const emails = await write.fetch<string[]>(
-    `*[_type=="newsletterSubscriber" && active != false && defined(email)].email`,
+  const rows = await write.fetch<Array<{ email?: string | null }>>(
+    `*[_type=="newsletterSubscriber" && active != false && defined(email)]{email}`,
   );
 
   const unique = Array.from(
     new Set(
-      (emails || [])
-        .map((e) => String(e || "").trim().toLowerCase())
+      (rows || [])
+        .map((r) => String(r?.email || "").trim().toLowerCase())
         .filter((e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)),
     ),
   );
@@ -152,6 +152,8 @@ export async function POST(req: Request) {
 
   let sent = 0;
   const failures: string[] = [];
+
+  const resendIds: string[] = [];
 
   for (const to of unique) {
     const res = await fetch("https://api.resend.com/emails", {
@@ -167,9 +169,16 @@ export async function POST(req: Request) {
         html,
       }),
     });
+    const raw = await res.text();
     if (!res.ok) {
-      failures.push(`${to}: ${(await res.text()).slice(0, 120)}`);
+      failures.push(`${to}: ${raw.slice(0, 240)}`);
       continue;
+    }
+    try {
+      const j = JSON.parse(raw) as { id?: string };
+      if (j?.id) resendIds.push(j.id);
+    } catch {
+      // ignore
     }
     sent += 1;
   }
@@ -196,5 +205,6 @@ export async function POST(req: Request) {
     sent,
     attempted: unique.length,
     failures: failures.slice(0, 20),
+    resendEmailIds: resendIds.slice(0, 10),
   });
 }

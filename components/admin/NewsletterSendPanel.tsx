@@ -35,11 +35,24 @@ export function NewsletterSendPanel({
       });
       const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
       if (!res.ok) {
-        setMessage(String(data.error || `Send failed (${res.status})`));
+        const fail = Array.isArray(data.failures) ? (data.failures as string[]).join(" | ") : "";
+        setMessage(
+          [String(data.error || `Send failed (${res.status})`), fail && `Details: ${fail}`]
+            .filter(Boolean)
+            .join(" "),
+        );
         return;
       }
+      const fail = Array.isArray(data.failures) ? (data.failures as string[]).filter(Boolean) : [];
+      const ids = Array.isArray(data.resendEmailIds) ? (data.resendEmailIds as string[]).filter(Boolean) : [];
       setMessage(
-        `Sent OK: ${String(data.sent ?? "")} / ${String(data.attempted ?? "")} (refresh page to see updated status).`,
+        [
+          `Sent OK: ${String(data.sent ?? "")} / ${String(data.attempted ?? "")}.`,
+          fail.length ? `Some failed: ${fail.join(" | ")}` : "",
+          ids.length ? `Resend IDs: ${ids.join(", ")}` : "",
+        ]
+          .filter(Boolean)
+          .join(" "),
       );
       router.refresh();
     } catch {
