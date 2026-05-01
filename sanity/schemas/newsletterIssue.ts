@@ -1,10 +1,19 @@
 import { defineField, defineType } from "sanity";
+import { NewsletterBroadcastField } from "../components/NewsletterBroadcastField";
 
 export const newsletterIssue = defineType({
   name: "newsletterIssue",
   title: "Newsletter issues",
   type: "document",
   fields: [
+    defineField({
+      name: "sendBroadcastPanel",
+      title: "Broadcast",
+      type: "string",
+      description: "UI only — not used in the email.",
+      readOnly: true,
+      components: { input: NewsletterBroadcastField },
+    }),
     defineField({
       name: "title",
       title: "Internal title",
