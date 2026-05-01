@@ -1,7 +1,18 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { getAdminCookieName, verifyAdminToken } from "@/lib/adminSession";
+import { getAdminCookieName } from "@/lib/adminSession";
+import { authorizeNewsletterSend } from "@/lib/newsletterSendAuth";
 import { getSanityWriteClient } from "@/lib/sanityWrite";
+
+const SEND_CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
+
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204, headers: SEND_CORS_HEADERS });
+}
 
 type IssueDoc = {
   _id: string;
@@ -80,16 +91,15 @@ ${pre}
 
 export async function POST(req: Request) {
   const token = (await cookies()).get(getAdminCookieName())?.value;
-  const session = verifyAdminToken(token);
-  if (!session.ok) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!authorizeNewsletterSend(req, token)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: SEND_CORS_HEADERS });
   }
 
   const write = getSanityWriteClient();
   if (!write) {
     return NextResponse.json(
       { error: "Sanity write token not configured (set SANITY_API_WRITE_TOKEN)" },
-      { status: 503 },
+      { status: 503, headers: SEND_CORS_HEADERS },
     );
   }
 
@@ -97,7 +107,7 @@ export async function POST(req: Request) {
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400, headers: SEND_CORS_HEADERS });
   }
 
   const b = body as Record<string, unknown>;
@@ -105,7 +115,7 @@ export async function POST(req: Request) {
   const forceResend = Boolean(b.forceResend);
 
   if (!issueId) {
-    return NextResponse.json({ error: "issueId required" }, { status: 400 });
+    return NextResponse.json({ error: "issueId required" }, { status: 400, headers: SEND_CORS_HEADERS });
   }
 
   const apiKey = process.env.RESEND_API_KEY;
@@ -113,7 +123,7 @@ export async function POST(req: Request) {
   if (!apiKey || !from) {
     return NextResponse.json(
       { error: "Resend not configured (set RESEND_API_KEY and RESEND_FROM)" },
-      { status: 500 },
+      { status: 500, headers: SEND_CORS_HEADERS },
     );
   }
 
@@ -125,11 +135,14 @@ export async function POST(req: Request) {
   );
 
   if (!issue?._id) {
-    return NextResponse.json({ error: "Issue not found" }, { status: 404 });
+    return NextResponse.json({ error: "Issue not found" }, { status: 404, headers: SEND_CORS_HEADERS });
   }
 
   if (issue.status === "sent" && !forceResend) {
-    return NextResponse.json({ error: "Already sent (pass forceResend to resend)" }, { status: 409 });
+    return NextResponse.json(
+      { error: "Already sent (pass forceResend to resend)" },
+      { status: 409, headers: SEND_CORS_HEADERS },
+    );
   }
 
   const rows = await write.fetch<Array<{ email?: string | null }>>(
@@ -144,7 +157,7 @@ export async function POST(req: Request) {
     ),
   );
   if (!unique.length) {
-    return NextResponse.json({ error: "No active subscribers" }, { status: 400 });
+    return NextResponse.json({ error: "No active subscribers" }, { status: 400, headers: SEND_CORS_HEADERS });
   }
 
   const html = buildNewsletterHtml(issue);
@@ -186,7 +199,7 @@ export async function POST(req: Request) {
   if (!sent) {
     return NextResponse.json(
       { error: "All sends failed", failures: failures.slice(0, 10) },
-      { status: 502 },
+      { status: 502, headers: SEND_CORS_HEADERS },
     );
   }
 
@@ -200,11 +213,14 @@ export async function POST(req: Request) {
     })
     .commit();
 
-  return NextResponse.json({
-    ok: true,
-    sent,
-    attempted: unique.length,
-    failures: failures.slice(0, 20),
-    resendEmailIds: resendIds.slice(0, 10),
-  });
+  return NextResponse.json(
+    {
+      ok: true,
+      sent,
+      attempted: unique.length,
+      failures: failures.slice(0, 20),
+      resendEmailIds: resendIds.slice(0, 10),
+    },
+    { headers: SEND_CORS_HEADERS },
+  );
 }

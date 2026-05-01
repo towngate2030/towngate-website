@@ -12,7 +12,12 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function NewsletterAdminPage() {
+export default async function NewsletterAdminPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ issue?: string }>;
+}) {
+  const issueHighlight = searchParams ? (await searchParams).issue : undefined;
   const token = (await cookies()).get(getAdminCookieName())?.value;
   const session = verifyAdminToken(token);
 
@@ -73,7 +78,11 @@ export default async function NewsletterAdminPage() {
           </p>
         </div>
 
-        <NewsletterSendPanel issues={issues || []} subscriberCount={Number(subscriberCount || 0)} />
+        <NewsletterSendPanel
+          issues={issues || []}
+          subscriberCount={Number(subscriberCount || 0)}
+          highlightIssueId={issueHighlight}
+        />
       </div>
     </div>
   );

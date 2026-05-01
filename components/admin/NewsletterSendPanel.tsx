@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export type NewsletterIssueRow = {
   _id: string;
@@ -15,13 +15,25 @@ export type NewsletterIssueRow = {
 export function NewsletterSendPanel({
   issues,
   subscriberCount,
+  highlightIssueId,
 }: {
   issues: NewsletterIssueRow[];
   subscriberCount: number;
+  /** From Sanity Studio "Open send page" deep link (?issue=...) */
+  highlightIssueId?: string;
 }) {
   const router = useRouter();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [message, setMessage] = useState<string>("");
+  const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
+
+  useEffect(() => {
+    const id = highlightIssueId?.trim();
+    if (!id) return;
+    const row = rowRefs.current[id];
+    if (!row) return;
+    row.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [highlightIssueId, issues]);
 
   async function send(issueId: string, forceResend: boolean) {
     setBusyId(issueId);
@@ -89,7 +101,17 @@ export function NewsletterSendPanel({
           <tbody>
             {issues.length ? (
               issues.map((it) => (
-                <tr key={it._id} className="border-b border-white/5 align-top">
+                <tr
+                  key={it._id}
+                  ref={(el) => {
+                    rowRefs.current[it._id] = el;
+                  }}
+                  className={
+                    highlightIssueId && it._id === highlightIssueId
+                      ? "border-b border-white/5 align-top bg-brand-orange/15 ring-1 ring-brand-orange/40"
+                      : "border-b border-white/5 align-top"
+                  }
+                >
                   <td className="py-3 pr-3 font-semibold text-white">{it.title || "—"}</td>
                   <td className="py-3 pr-3 text-tg-cream/85">{it.subjectLine || "—"}</td>
                   <td className="py-3 pr-3 text-tg-cream/85">{it.status || "—"}</td>
