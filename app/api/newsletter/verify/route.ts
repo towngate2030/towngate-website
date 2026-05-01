@@ -11,7 +11,12 @@ type SubscriberRow = {
   verificationTokenExpiresAt?: string | null;
 };
 
-function redirectTo(req: Request, path: string): NextResponse {
+function redirectTo(
+  req: Request,
+  path: string,
+  /** Use 303 after POST so the browser follows with GET (307 would repeat POST and break the flow). */
+  status: 302 | 303 = 302,
+): NextResponse {
   const origin = resolveRedirectOrigin(req);
   if (!origin) {
     return NextResponse.json(
@@ -19,18 +24,18 @@ function redirectTo(req: Request, path: string): NextResponse {
       { status: 500 },
     );
   }
-  return NextResponse.redirect(new URL(path, `${origin}/`));
+  return NextResponse.redirect(new URL(path, `${origin}/`), status);
 }
 
 async function verifyWithToken(req: Request, token: string): Promise<NextResponse> {
   console.log("Token received:", token);
 
   if (!token || token.length < 16) {
-    return redirectTo(req, "/newsletter/verify?status=invalid");
+    return redirectTo(req, "/newsletter/verify?status=invalid", 303);
   }
 
   const write = getSanityWriteClient();
-  if (!write) return redirectTo(req, "/newsletter/verify?status=server");
+  if (!write) return redirectTo(req, "/newsletter/verify?status=server", 303);
 
   const tokenHash = sha256Base64Url(token);
 
@@ -40,13 +45,13 @@ async function verifyWithToken(req: Request, token: string): Promise<NextRespons
   );
   console.log("Subscriber found:", subscriber);
 
-  if (!subscriber?._id) return redirectTo(req, "/newsletter/verify?status=invalid");
+  if (!subscriber?._id) return redirectTo(req, "/newsletter/verify?status=invalid", 303);
 
   const exp = subscriber.verificationTokenExpiresAt
     ? Date.parse(subscriber.verificationTokenExpiresAt)
     : NaN;
   if (!Number.isFinite(exp) || exp < Date.now()) {
-    return redirectTo(req, "/newsletter/verify?status=expired");
+    return redirectTo(req, "/newsletter/verify?status=expired", 303);
   }
 
   const now = new Date().toISOString();
@@ -61,10 +66,10 @@ async function verifyWithToken(req: Request, token: string): Promise<NextRespons
       .commit();
   } catch (e) {
     console.error("[newsletter/verify] Sanity patch failed:", e);
-    return redirectTo(req, "/newsletter/verify?status=server");
+    return redirectTo(req, "/newsletter/verify?status=server", 303);
   }
 
-  return redirectTo(req, "/newsletter/verify?status=ok");
+  return redirectTo(req, "/newsletter/verify?status=ok", 303);
 }
 
 /**
