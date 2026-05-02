@@ -42,32 +42,32 @@ export function MobileMenu({
 
   return (
     <div className="tg-mobile-menu-root md:hidden">
-      {/* Fixed yellow bar — mark only (full wordmark lives in desktop header only) */}
-      <div className="fixed inset-x-0 top-0 z-50 bg-amber-100/95 shadow-sm">
-        <div className="relative mx-auto flex min-h-16 max-w-6xl items-center px-4 py-3">
-          <div className="absolute left-1/2 -translate-x-1/2">
+      {/* Mobile top bar: no yellow strip — transparent, logo centered & slightly larger */}
+      <div className="fixed inset-x-0 top-0 z-50 bg-transparent">
+        <div className="relative mx-auto flex min-h-[4.5rem] max-w-6xl items-center justify-center px-4 py-3">
+          <div className="pointer-events-none absolute inset-x-0 flex justify-center">
             {logoUrl?.trim() ? (
               <Link
                 href="/"
                 locale={locale}
                 translate="no"
-                className="inline-flex max-h-11 max-w-[min(56vw,200px)] shrink-0"
+                className="pointer-events-auto inline-flex max-h-[4rem] max-w-[min(72vw,280px)] shrink-0"
                 aria-label="Home"
               >
                 <Image
                   src={logoUrl.trim()}
                   alt=""
-                  width={200}
-                  height={56}
-                  className="h-11 w-auto object-contain"
+                  width={280}
+                  height={72}
+                  className="h-14 w-auto object-contain"
                   priority
                 />
               </Link>
             ) : null}
           </div>
 
-          {/* Hamburger (always on the RIGHT) */}
-          <div className="absolute right-4 top-1/2 -translate-y-1/2">
+          {/* Hamburger (aligned end in LTR = right; RTL-aware via logical inset) */}
+          <div className="pointer-events-auto absolute end-4 top-1/2 -translate-y-1/2">
             <button
               type="button"
               onClick={() => setOpen((v) => !v)}
@@ -83,8 +83,8 @@ export function MobileMenu({
           </div>
         </div>
       </div>
-      {/* Spacer so content never sits under the fixed bar */}
-      <div className="h-16" />
+      {/* Spacer — match bar height */}
+      <div className="h-[4.5rem]" />
 
       {/* Dropdown */}
       <AnimatePresence>
@@ -102,7 +102,7 @@ export function MobileMenu({
               animate={{ opacity: 1, y: 0, x: 0 }}
               exit={{ opacity: 0, y: -8, x: 8 }}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className="absolute right-4 top-[72px] w-fit max-w-[calc(100vw-32px)] overflow-hidden rounded-2xl border border-white/10 bg-brand-navy/95 shadow-xl"
+              className="absolute end-4 top-[calc(4.5rem+0.5rem)] w-fit max-w-[calc(100vw-32px)] overflow-hidden rounded-2xl border border-white/10 bg-brand-navy/95 shadow-xl"
             >
               <nav className="flex flex-col gap-1 p-2">
                 {ordered.map((it) => (
