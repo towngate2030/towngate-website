@@ -30,17 +30,19 @@ export const heroVideoLead = defineType({
     }),
     defineField({
       name: "taglineAr",
-      title: "الجملة تحت اسم المشروع (عربي)",
+      title: "الجملة تحت العنوان وفوق نموذج التسجيل (عربي)",
       type: "text",
       rows: 3,
-      description: "تظهر بين اسم المشروع ونموذج التسجيل. اتركها فاضية لو حابة النص الافتراضي من الموقع.",
+      description:
+        "هذا هو النص الصغير بين عنوان المشروع وصندوق «سجل اهتمامك» (مثل: «يلتقي أفضل ما في العالم…»). اكتبه هنا بالكامل من Sanity. لو تركت الحقل فارغًا يُعرض نص احتياطي من ملفات الترجمة في الكود.",
     }),
     defineField({
       name: "taglineEn",
-      title: "الجملة تحت اسم المشروع (إنجليزي)",
+      title: "الجملة تحت العنوان وفوق نموذج التسجيل (إنجليزي)",
       type: "text",
       rows: 3,
-      description: "Same line under the title (English). Leave empty to use the site default.",
+      description:
+        "Same strapline above the lead form (English). Leave empty to use the English fallback from site translations.",
     }),
     defineField({
       name: "backgroundVideo",
