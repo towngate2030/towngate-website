@@ -1,6 +1,10 @@
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
 
+/**
+ * Single Sanity logo in the header — no decorative CSS (no shadow/filter classes)
+ * so browsers don’t paint a faint duplicate next to the image.
+ */
 export function Logo({
   locale,
   logoUrl,
@@ -20,7 +24,7 @@ export function Logo({
     <Link
       href="/"
       translate="no"
-      className="tg-logo flex shrink-0 items-center gap-2"
+      className="inline-flex shrink-0 items-center"
       locale={locale}
       aria-label="Home"
     >
@@ -29,7 +33,7 @@ export function Logo({
         alt=""
         width={220}
         height={64}
-        className={`tg-logo__img max-h-[80px] max-w-[min(72vw,280px)] object-contain object-start ${cls}`}
+        className={`max-h-[80px] max-w-[min(72vw,280px)] object-contain object-start ${cls}`}
         priority
       />
     </Link>

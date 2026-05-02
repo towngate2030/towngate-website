@@ -42,7 +42,6 @@ export function MobileMenu({
 
   return (
     <div className="tg-mobile-menu-root md:hidden">
-      {/* Mobile top bar: no yellow strip — transparent, logo centered & slightly larger */}
       <div className="fixed inset-x-0 top-0 z-50 bg-transparent">
         <div className="relative mx-auto flex min-h-[4.5rem] max-w-6xl items-center justify-center px-4 py-3">
           <div className="pointer-events-none absolute inset-x-0 flex justify-center">
@@ -66,7 +65,6 @@ export function MobileMenu({
             ) : null}
           </div>
 
-          {/* Hamburger (aligned end in LTR = right; RTL-aware via logical inset) */}
           <div className="pointer-events-auto absolute end-4 top-1/2 -translate-y-1/2">
             <button
               type="button"
