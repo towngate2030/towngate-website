@@ -13,16 +13,16 @@ export const siteSettings = defineType({
     }),
     defineField({
       name: "aboveNavLineAr",
-      title: "Line above main menu (AR)",
+      title: "سطر فوق المينيو (عربي)",
       type: "string",
       description:
-        "Optional short sentence shown above the navigation links (desktop + mobile). Leave empty to hide.",
+        "جملة اختيارية تظهر فوق أزرار التنقّل (ديسكتوب + موبايل). اتركها فاضية لإخفائها. (ليس فوق نموذج «سجّل اهتمامك» — انظر وثيقة «الهيرو — فيديو».)",
     }),
     defineField({
       name: "aboveNavLineEn",
-      title: "Line above main menu (EN)",
+      title: "سطر فوق المينيو (إنجليزي)",
       type: "string",
-      description: "Same as Arabic — optional.",
+      description: "نفس فكرة الحقل العربي. English line above the nav bar.",
     }),
     defineField({
       name: "heroBgUrl",
