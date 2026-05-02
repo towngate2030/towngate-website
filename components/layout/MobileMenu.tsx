@@ -15,7 +15,6 @@ export function MobileMenu({
   items,
   scrollElevated = false,
   aboveNavLine,
-  menuOpacity = 1,
 }: {
   locale: string;
   logoUrl?: string;
@@ -24,8 +23,6 @@ export function MobileMenu({
   scrollElevated?: boolean;
   /** Sanity optional line above logo row */
   aboveNavLine?: string;
-  /** Fades primary menu strip on scroll (1 → ~0.12) */
-  menuOpacity?: number;
 }) {
   const [open, setOpen] = useState(false);
   const activeLocale = useLocale();
@@ -54,17 +51,13 @@ export function MobileMenu({
     scrollElevated || open ? HEADER_BAR_SOLID : "bg-transparent";
 
   const line = aboveNavLine?.trim();
-  const stripOpacity = open ? 1 : menuOpacity;
 
   return (
     <div className="tg-mobile-menu-root md:hidden">
       <div
         className={`fixed inset-x-0 top-0 z-50 ${HEADER_BAR_TRANSITION} ${solidBar}`.trim()}
       >
-        <div
-          className="relative mx-auto flex max-w-6xl flex-col gap-1 px-4 py-2 transition-opacity duration-150 ease-out"
-          style={{ opacity: stripOpacity }}
-        >
+        <div className="relative mx-auto flex max-w-6xl flex-col gap-1 px-4 py-2">
           {line ? (
             <p
               translate="no"

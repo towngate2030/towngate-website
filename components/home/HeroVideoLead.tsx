@@ -97,20 +97,27 @@ export function HeroVideoLead({
         </div>
 
         <div className="mt-10 flex w-full justify-center md:mt-14">
-          <div className="w-full max-w-md rounded-2xl border border-white/15 bg-black/45 p-5 shadow-xl backdrop-blur-md md:p-6">
-            <h2 className="text-center text-lg font-bold text-white md:text-xl">
-              {th("formTitle")}
-            </h2>
+          {/* Glass fades to fully transparent at the bottom edge (not the nav) */}
+          <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-white/15 shadow-xl">
             <div
-              className="mx-auto mt-2 h-0.5 w-10 rounded-full bg-brand-orange"
+              className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/55 from-[8%] via-black/20 via-[55%] to-transparent to-100%"
               aria-hidden
             />
+            <div className="relative z-[1] p-5 backdrop-blur-[6px] md:p-6">
+              <h2 className="text-center text-lg font-bold text-white md:text-xl">
+                {th("formTitle")}
+              </h2>
+              <div
+                className="mx-auto mt-2 h-0.5 w-10 rounded-full bg-brand-orange"
+                aria-hidden
+              />
 
-            <LeadFormFields
-              locale={locale}
-              status={status}
-              onSubmitting={(v) => setStatus(v)}
-            />
+              <LeadFormFields
+                locale={locale}
+                status={status}
+                onSubmitting={(v) => setStatus(v)}
+              />
+            </div>
           </div>
         </div>
       </div>

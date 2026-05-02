@@ -9,15 +9,7 @@ import { MobileMenu } from "./MobileMenu";
 
 type NavLink = { href: string; label: string };
 
-/** Scroll distance over which nav/menu row fades toward minimum opacity */
-const MENU_FADE_RANGE_PX = 300;
-const MENU_MIN_OPACITY = 0.12;
 const ELEVATED_SCROLL_THRESHOLD = 48;
-
-function menuOpacityFromScroll(scrollY: number): number {
-  const t = Math.min(Math.max(scrollY, 0) / MENU_FADE_RANGE_PX, 1);
-  return MENU_MIN_OPACITY + (1 - MENU_MIN_OPACITY) * (1 - t);
-}
 
 export function SiteHeader({
   locale,
@@ -31,18 +23,17 @@ export function SiteHeader({
   /** From Sanity Site settings — optional line above nav */
   aboveNavLine?: string;
 }) {
-  const [scrollY, setScrollY] = useState(0);
+  const [elevated, setElevated] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrollY(window.scrollY);
+    const onScroll = () =>
+      setElevated(window.scrollY >= ELEVATED_SCROLL_THRESHOLD);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const elevated = scrollY >= ELEVATED_SCROLL_THRESHOLD;
   const surface = elevated ? HEADER_BAR_SOLID : "bg-transparent";
-  const menuOpacity = menuOpacityFromScroll(scrollY);
 
   const line = aboveNavLine?.trim();
 
@@ -54,7 +45,6 @@ export function SiteHeader({
         items={links}
         scrollElevated={elevated}
         aboveNavLine={line}
-        menuOpacity={menuOpacity}
       />
       <header
         className={`tg-desktop-header ${HEADER_BAR_TRANSITION} ${surface} fixed inset-x-0 top-0 z-50 hidden md:block`}
@@ -69,10 +59,7 @@ export function SiteHeader({
             </div>
           </div>
 
-          <div
-            className="flex w-full flex-col items-center transition-opacity duration-150 ease-out md:pl-[clamp(3rem,11vw,8rem)]"
-            style={{ opacity: menuOpacity }}
-          >
+          <div className="flex w-full flex-col items-center md:pl-[clamp(3rem,11vw,8rem)]">
             {line ? (
               <p
                 translate="no"
