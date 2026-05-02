@@ -12,6 +12,19 @@ export const siteSettings = defineType({
       description: "Upload your logo to Cloudinary and paste the direct URL here.",
     }),
     defineField({
+      name: "aboveNavLineAr",
+      title: "Line above main menu (AR)",
+      type: "string",
+      description:
+        "Optional short sentence shown above the navigation links (desktop + mobile). Leave empty to hide.",
+    }),
+    defineField({
+      name: "aboveNavLineEn",
+      title: "Line above main menu (EN)",
+      type: "string",
+      description: "Same as Arabic — optional.",
+    }),
+    defineField({
       name: "heroBgUrl",
       title: "Hero background URL (Cloudinary)",
       type: "url",

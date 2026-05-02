@@ -82,6 +82,8 @@ export type HeroSettings = {
   logoUrl?: string;
   heroBgUrl: string;
   homeMapUrl?: string;
+  /** Optional strapline above nav — edited in Site settings */
+  aboveNavLine: Record<Locale, string>;
   kicker: Record<Locale, string>;
   title: Record<Locale, string>;
   subtitle: Record<Locale, string>;
@@ -103,6 +105,8 @@ export async function getHeroSettings(): Promise<HeroSettings> {
     logoUrl?: string;
     heroBgUrl?: string;
     homeMapUrl?: string;
+    aboveNavLineAr?: string;
+    aboveNavLineEn?: string;
     kickerAr?: string;
     kickerEn?: string;
     heroTitleAr?: string;
@@ -124,6 +128,8 @@ export async function getHeroSettings(): Promise<HeroSettings> {
       logoUrl,
       heroBgUrl,
       homeMapUrl,
+      aboveNavLineAr,
+      aboveNavLineEn,
       kickerAr,kickerEn,
       heroTitleAr,heroTitleEn,
       heroSubtitleAr,heroSubtitleEn,
@@ -138,6 +144,10 @@ export async function getHeroSettings(): Promise<HeroSettings> {
     logoUrl: doc.logoUrl || "",
     heroBgUrl: doc.heroBgUrl || "",
     homeMapUrl: doc.homeMapUrl || "",
+    aboveNavLine: {
+      ar: String(doc.aboveNavLineAr || "").trim(),
+      en: String(doc.aboveNavLineEn || "").trim(),
+    },
     kicker: { ar: doc.kickerAr || seedHero().kicker.ar, en: doc.kickerEn || seedHero().kicker.en },
     title: { ar: doc.heroTitleAr || seedHero().title.ar, en: doc.heroTitleEn || seedHero().title.en },
     subtitle: { ar: doc.heroSubtitleAr || seedHero().subtitle.ar, en: doc.heroSubtitleEn || seedHero().subtitle.en },
@@ -163,6 +173,7 @@ function seedHero(): HeroSettings {
     logoUrl: "",
     heroBgUrl: "",
     homeMapUrl: "",
+    aboveNavLine: { ar: "", en: "" },
     kicker: { ar: "كمبوند — العاصمة الإدارية", en: "Compound — New Capital" },
     title: {
       ar: "نصمّم أماكن تعيش فيها القصة.",

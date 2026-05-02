@@ -13,11 +13,15 @@ export async function Header({ locale }: { locale: string }) {
     { href: "/contact", label: t("contact") },
   ] as const;
 
+  const loc = locale as "ar" | "en";
+  const aboveNavLine = hero.aboveNavLine[loc]?.trim() || undefined;
+
   return (
     <SiteHeader
       locale={locale}
       logoUrl={hero.logoUrl || undefined}
       links={links as unknown as { href: string; label: string }[]}
+      aboveNavLine={aboveNavLine}
     />
   );
 }

@@ -14,12 +14,18 @@ export function MobileMenu({
   logoUrl,
   items,
   scrollElevated = false,
+  aboveNavLine,
+  menuOpacity = 1,
 }: {
   locale: string;
   logoUrl?: string;
   items: Item[];
   /** True after page scroll — same solid bar as desktop */
   scrollElevated?: boolean;
+  /** Sanity optional line above logo row */
+  aboveNavLine?: string;
+  /** Fades primary menu strip on scroll (1 → ~0.12) */
+  menuOpacity?: number;
 }) {
   const [open, setOpen] = useState(false);
   const activeLocale = useLocale();
@@ -47,46 +53,62 @@ export function MobileMenu({
   const solidBar =
     scrollElevated || open ? HEADER_BAR_SOLID : "bg-transparent";
 
+  const line = aboveNavLine?.trim();
+  const stripOpacity = open ? 1 : menuOpacity;
+
   return (
     <div className="tg-mobile-menu-root md:hidden">
       <div
         className={`fixed inset-x-0 top-0 z-50 ${HEADER_BAR_TRANSITION} ${solidBar}`.trim()}
       >
-        <div className="relative mx-auto flex min-h-[4.5rem] max-w-6xl items-center justify-center px-4 py-3">
-          <div className="pointer-events-none absolute inset-x-0 flex justify-center">
-            {logoUrl?.trim() ? (
-              <Link
-                href="/"
-                locale={locale}
-                translate="no"
-                className="pointer-events-auto inline-flex max-h-[4rem] max-w-[min(72vw,280px)] shrink-0"
-                aria-label="Home"
-              >
-                <Image
-                  src={logoUrl.trim()}
-                  alt=""
-                  width={280}
-                  height={72}
-                  className="h-14 w-auto object-contain"
-                  priority
-                />
-              </Link>
-            ) : null}
-          </div>
-
-          <div className="pointer-events-auto absolute end-4 top-1/2 -translate-y-1/2">
-            <button
-              type="button"
-              onClick={() => setOpen((v) => !v)}
-              className="grid h-11 w-11 place-items-center rounded-full bg-brand-orange shadow-md shadow-brand-orange/20 transition hover:brightness-110"
-              aria-label={open ? "Close menu" : "Open menu"}
+        <div
+          className="relative mx-auto flex max-w-6xl flex-col gap-1 px-4 py-2 transition-opacity duration-150 ease-out"
+          style={{ opacity: stripOpacity }}
+        >
+          {line ? (
+            <p
+              translate="no"
+              className="line-clamp-2 px-10 text-center text-[11px] font-semibold leading-snug text-white drop-shadow-md"
             >
-              <span className="grid gap-1">
-                <span className="h-0.5 w-4 rounded bg-white" />
-                <span className="h-0.5 w-4 rounded bg-white" />
-                <span className="h-0.5 w-4 rounded bg-white" />
-              </span>
-            </button>
+              {line}
+            </p>
+          ) : null}
+          <div className="relative flex min-h-[3.5rem] items-center justify-center py-1">
+            <div className="pointer-events-none absolute inset-x-0 flex justify-center">
+              {logoUrl?.trim() ? (
+                <Link
+                  href="/"
+                  locale={locale}
+                  translate="no"
+                  className="pointer-events-auto inline-flex max-h-[4rem] max-w-[min(72vw,280px)] shrink-0"
+                  aria-label="Home"
+                >
+                  <Image
+                    src={logoUrl.trim()}
+                    alt=""
+                    width={280}
+                    height={72}
+                    className="h-14 w-auto object-contain"
+                    priority
+                  />
+                </Link>
+              ) : null}
+            </div>
+
+            <div className="pointer-events-auto absolute end-0 top-1/2 -translate-y-1/2">
+              <button
+                type="button"
+                onClick={() => setOpen((v) => !v)}
+                className="grid h-11 w-11 place-items-center rounded-full bg-brand-orange shadow-md shadow-brand-orange/20 transition hover:brightness-110"
+                aria-label={open ? "Close menu" : "Open menu"}
+              >
+                <span className="grid gap-1">
+                  <span className="h-0.5 w-4 rounded bg-white" />
+                  <span className="h-0.5 w-4 rounded bg-white" />
+                  <span className="h-0.5 w-4 rounded bg-white" />
+                </span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -107,7 +129,11 @@ export function MobileMenu({
               animate={{ opacity: 1, y: 0, x: 0 }}
               exit={{ opacity: 0, y: -8, x: 8 }}
               transition={{ duration: 0.18, ease: "easeOut" }}
-              className="absolute end-4 top-[calc(4.5rem+0.5rem)] w-fit max-w-[calc(100vw-32px)] overflow-hidden rounded-2xl border border-white/10 bg-brand-navy/95 shadow-xl"
+              className={
+                line
+                  ? "absolute end-4 top-[calc(5.75rem+0.5rem)] w-fit max-w-[calc(100vw-32px)] overflow-hidden rounded-2xl border border-white/10 bg-brand-navy/95 shadow-xl"
+                  : "absolute end-4 top-[calc(4.5rem+0.5rem)] w-fit max-w-[calc(100vw-32px)] overflow-hidden rounded-2xl border border-white/10 bg-brand-navy/95 shadow-xl"
+              }
             >
               <nav className="flex flex-col gap-1 p-2">
                 {ordered.map((it) => (
