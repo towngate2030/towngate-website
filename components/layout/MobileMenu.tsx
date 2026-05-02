@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import { useLocale } from "next-intl";
 import { Link, usePathname, useRouter } from "@/i18n/routing";
+import { HEADER_BAR_SOLID, HEADER_BAR_TRANSITION } from "./headerBar";
 
 type Item = { href: string; label: string };
 
@@ -12,10 +13,13 @@ export function MobileMenu({
   locale,
   logoUrl,
   items,
+  scrollElevated = false,
 }: {
   locale: string;
   logoUrl?: string;
   items: Item[];
+  /** True after page scroll — same solid bar as desktop */
+  scrollElevated?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const activeLocale = useLocale();
@@ -40,9 +44,14 @@ export function MobileMenu({
     return items;
   }, [items]);
 
+  const solidBar =
+    scrollElevated || open ? HEADER_BAR_SOLID : "bg-transparent";
+
   return (
     <div className="tg-mobile-menu-root md:hidden">
-      <div className="fixed inset-x-0 top-0 z-50 bg-transparent">
+      <div
+        className={`fixed inset-x-0 top-0 z-50 ${HEADER_BAR_TRANSITION} ${solidBar}`.trim()}
+      >
         <div className="relative mx-auto flex min-h-[4.5rem] max-w-6xl items-center justify-center px-4 py-3">
           <div className="pointer-events-none absolute inset-x-0 flex justify-center">
             {logoUrl?.trim() ? (
