@@ -4,6 +4,13 @@ import { getFeaturedProjects as getSeedFeatured, getProjects as getSeedProjects 
 
 export type Locale = "ar" | "en";
 
+export type LeadUnitTypeOption = {
+  /** Slug stored with the lead (e.g. villa, chalet) */
+  value: string;
+  labelAr: string;
+  labelEn: string;
+};
+
 export type HeroVideoLeadSettings = {
   isActive: boolean;
   /** Resolved MP4/WebM URL (من ملف مرفوع أو من الرابط الاختياري). */
@@ -15,6 +22,8 @@ export type HeroVideoLeadSettings = {
   tagline: Record<Locale, string>;
   videoMuted: boolean;
   saveLeadsToSanity: boolean;
+  /** Dropdown options for «نوع الوحدة» — from heroVideoLead.leadUnitTypes */
+  leadUnitTypes: LeadUnitTypeOption[];
 };
 
 /**
@@ -38,6 +47,7 @@ export async function getHeroVideoLeadSettings(): Promise<HeroVideoLeadSettings 
     taglineEn?: string;
     videoMuted?: boolean;
     saveLeadsToSanity?: boolean;
+    leadUnitTypes?: Array<{ value?: string; labelAr?: string; labelEn?: string }>;
   };
 
   const doc = await sanityFreshClient.fetch<Doc | null>(
@@ -51,7 +61,8 @@ export async function getHeroVideoLeadSettings(): Promise<HeroVideoLeadSettings 
       taglineAr,
       taglineEn,
       videoMuted,
-      saveLeadsToSanity
+      saveLeadsToSanity,
+      leadUnitTypes[]{value,labelAr,labelEn}
     }`,
   );
 
@@ -60,6 +71,8 @@ export async function getHeroVideoLeadSettings(): Promise<HeroVideoLeadSettings 
   const videoUrl = fromFile || fromUrl;
 
   if (!doc?.isActive || !videoUrl) return null;
+
+  const leadUnitTypes = normalizeLeadUnitTypes(doc.leadUnitTypes);
 
   return {
     isActive: true,
@@ -75,7 +88,23 @@ export async function getHeroVideoLeadSettings(): Promise<HeroVideoLeadSettings 
     },
     videoMuted: doc.videoMuted !== false,
     saveLeadsToSanity: doc.saveLeadsToSanity !== false,
+    leadUnitTypes,
   };
+}
+
+function normalizeLeadUnitTypes(
+  raw: Array<{ value?: string; labelAr?: string; labelEn?: string }> | undefined,
+): LeadUnitTypeOption[] {
+  if (!raw?.length) return [];
+  const out: LeadUnitTypeOption[] = [];
+  for (const row of raw) {
+    const value = String(row?.value || "").trim();
+    const labelAr = String(row?.labelAr || "").trim();
+    const labelEn = String(row?.labelEn || "").trim();
+    if (!value || (!labelAr && !labelEn)) continue;
+    out.push({ value, labelAr, labelEn });
+  }
+  return out;
 }
 
 export type HeroSettings = {

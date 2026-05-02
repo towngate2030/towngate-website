@@ -45,6 +45,54 @@ export const heroVideoLead = defineType({
         "Same strapline above the lead form (English). Leave empty to use the English fallback from site translations.",
     }),
     defineField({
+      name: "leadUnitTypes",
+      title: "خيارات «نوع الوحدة» في نموذج التسجيل",
+      type: "array",
+      description:
+        "أضف أو عدّل الخيارات كما يحتاج المشروع (تظهر في القائمة المنسدلة). القيمة المحفوظة تُرسل مع الطلب كـ unitInterest.",
+      of: [
+        {
+          type: "object",
+          fields: [
+            defineField({
+              name: "value",
+              title: "القيمة المحفوظة (لاتيني، بدون مسافات)",
+              type: "string",
+              description: "مثل: villa أو duplex — تُستخدم في النظام والإيميل.",
+              validation: (r) =>
+                r.required().custom((v) => {
+                  const s = String(v || "").trim();
+                  if (!s) return "مطلوب";
+                  if (/\s/.test(s)) return "بدون مسافات";
+                  return true;
+                }),
+            }),
+            defineField({
+              name: "labelAr",
+              title: "النص المعروض (عربي)",
+              type: "string",
+              validation: (r) => r.required(),
+            }),
+            defineField({
+              name: "labelEn",
+              title: "النص المعروض (إنجليزي)",
+              type: "string",
+              validation: (r) => r.required(),
+            }),
+          ],
+          preview: {
+            select: { ar: "labelAr", en: "labelEn", value: "value" },
+            prepare({ ar, en, value }) {
+              return {
+                title: [ar, en].filter(Boolean).join(" / ") || String(value),
+                subtitle: value ? `value: ${value}` : "",
+              };
+            },
+          },
+        },
+      ],
+    }),
+    defineField({
       name: "backgroundVideo",
       title: "رفع الفيديو (خلفية الصفحة)",
       type: "file",

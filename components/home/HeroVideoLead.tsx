@@ -9,6 +9,7 @@ import {
   DEFAULT_PHONE_DIAL,
   LEAD_PHONE_COUNTRIES,
 } from "@/components/home/leadPhoneCountries";
+import type { LeadUnitTypeOption } from "@/lib/cms";
 
 const OVERLAY_OPACITY = 0.5;
 
@@ -20,6 +21,8 @@ export type HeroVideoLeadProps = {
   /** جملة تحت العنوان من Sanity (لو فاضية يُعرض نص heroLead.subtitle من الترجمة) */
   tagline?: string;
   videoMuted: boolean;
+  /** خيارات نوع الوحدة من Sanity (heroVideoLead.leadUnitTypes) */
+  leadUnitTypes?: LeadUnitTypeOption[];
 };
 
 export function HeroVideoLead({
@@ -28,6 +31,7 @@ export function HeroVideoLead({
   title,
   tagline,
   videoMuted,
+  leadUnitTypes,
 }: HeroVideoLeadProps) {
   const locale = useLocale() as "ar" | "en";
   const th = useTranslations("heroLead");
@@ -115,6 +119,7 @@ export function HeroVideoLead({
               <LeadFormFields
                 locale={locale}
                 status={status}
+                unitTypes={leadUnitTypes}
                 onSubmitting={(v) => setStatus(v)}
               />
             </div>
@@ -128,10 +133,12 @@ export function HeroVideoLead({
 function LeadFormFields({
   locale,
   status,
+  unitTypes,
   onSubmitting,
 }: {
   locale: "ar" | "en";
   status: "idle" | "loading" | "ok" | "err";
+  unitTypes?: LeadUnitTypeOption[];
   onSubmitting: (s: "idle" | "loading" | "ok" | "err") => void;
 }) {
   const t = useTranslations("leadForm");
@@ -243,8 +250,13 @@ function LeadFormFields({
         className="rounded-xl border border-white/25 bg-white/10 px-4 py-3 text-sm text-white outline-none ring-brand-orange/30 focus:ring-2 [&>option]:bg-brand-navy [&>option]:text-white"
       >
         <option value="">{t("unitTypePlaceholder")}</option>
-        <option value="residential">{t("unitResidential")}</option>
-        <option value="commercial">{t("unitCommercial")}</option>
+        {(unitTypes ?? []).map((o) => (
+          <option key={o.value} value={o.value}>
+            {locale === "ar"
+              ? o.labelAr || o.labelEn
+              : o.labelEn || o.labelAr}
+          </option>
+        ))}
       </select>
       <label className="sr-only" htmlFor="lead-message">
         {t("message")}

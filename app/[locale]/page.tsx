@@ -38,6 +38,7 @@ export default async function HomePage({ params }: Props) {
           title={videoHero.title[loc]}
           tagline={videoHero.tagline[loc]}
           videoMuted={videoHero.videoMuted}
+          leadUnitTypes={videoHero.leadUnitTypes}
         />
       ) : (
         <Hero
