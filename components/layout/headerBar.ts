@@ -2,6 +2,6 @@
 export const HEADER_BAR_TRANSITION =
   "transition-[background-color,box-shadow,backdrop-filter,border-color] duration-300 ease-out";
 
-/** Dark warm yellow → black; works over hero video and light sections */
+/** Same deep navy as footer (`brand-navy` / #002b49) — desktop + mobile sticky bar */
 export const HEADER_BAR_SOLID =
-  "bg-[#1c1710]/95 shadow-[0_6px_28px_rgba(0,0,0,0.45)] backdrop-blur-md border-b border-black/35";
+  "bg-brand-navy/95 shadow-[0_6px_28px_rgba(0,0,0,0.4)] backdrop-blur-md border-b border-white/10";
