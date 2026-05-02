@@ -4,6 +4,9 @@ import { getWhatsAppUrl } from "@/lib/whatsapp";
 import { NewsletterSignup } from "@/components/newsletter/NewsletterSignup";
 import { getWhatsAppContacts } from "@/lib/cms";
 
+/** Developer credit — WhatsApp (E.164 without +): Egypt +20 11 0299 2950 */
+const DEVELOPER_WA_URL = "https://wa.me/201102992950";
+
 export async function Footer({ locale }: { locale: string }) {
   const t = await getTranslations("footer");
   const tn = await getTranslations("nav");
@@ -66,8 +69,37 @@ export async function Footer({ locale }: { locale: string }) {
         </div>
         <NewsletterSignup />
       </div>
-      <div className="border-t border-white/10 py-4 text-center text-xs text-tg-cream/60">
-        © {new Date().getFullYear()} TownGate. {t("rights")}
+      <div className="border-t border-white/10 px-4 py-4 text-center text-xs text-tg-cream/60">
+        <p>
+          © {new Date().getFullYear()} TownGate. {t("rights")}
+        </p>
+        <p className="mt-2 text-[11px] leading-relaxed text-tg-cream/45">
+          {locale === "ar" ? (
+            <>
+              تم التطوير بواسطة{" "}
+              <a
+                href={DEVELOPER_WA_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-tg-cream/70 underline decoration-white/25 underline-offset-2 transition hover:text-tg-cream"
+              >
+                م. باسم زيدان
+              </a>
+            </>
+          ) : (
+            <>
+              Developed by{" "}
+              <a
+                href={DEVELOPER_WA_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-tg-cream/70 underline decoration-white/25 underline-offset-2 transition hover:text-tg-cream"
+              >
+                Eng. Basem Zidan
+              </a>
+            </>
+          )}
+        </p>
       </div>
     </footer>
   );
