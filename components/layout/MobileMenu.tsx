@@ -83,8 +83,6 @@ export function MobileMenu({
           </div>
         </div>
       </div>
-      {/* Spacer — match bar height */}
-      <div className="h-[4.5rem]" />
 
       {/* Dropdown */}
       <AnimatePresence>

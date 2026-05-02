@@ -58,7 +58,8 @@ export default async function LocaleLayout({ children, params }: Props) {
     <NextIntlClientProvider messages={messages}>
       <ClientCacheBuster />
       <Header locale={locale} />
-      {children}
+      {/* Mobile: reserve space under fixed logo + menu so inner pages are not hidden; home hero pulls up with -mt */}
+      <div className="md:pt-0 pt-[4.5rem]">{children}</div>
       <Footer locale={locale} />
       <WhatsAppFab />
     </NextIntlClientProvider>

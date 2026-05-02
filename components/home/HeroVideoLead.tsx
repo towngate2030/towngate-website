@@ -45,7 +45,7 @@ export function HeroVideoLead({
   }, [prefersReducedMotion]);
 
   return (
-    <section className="relative isolate min-h-[min(100svh,920px)] overflow-hidden bg-black text-white">
+    <section className="relative isolate -mt-[4.5rem] min-h-[min(100svh,920px)] overflow-hidden bg-black text-white md:mt-0">
       {!prefersReducedMotion ? (
         <video
           data-hero-video

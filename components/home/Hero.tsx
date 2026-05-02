@@ -16,7 +16,7 @@ type Props = {
 export function Hero({ locale, bgUrl, kicker, title, subtitle, primaryCta }: Props) {
 
   return (
-    <section className="relative overflow-hidden bg-brand-navy text-tg-cream">
+    <section className="relative -mt-[4.5rem] overflow-hidden bg-brand-navy text-tg-cream md:mt-0">
       <div className="tg-arch pointer-events-none absolute inset-0 opacity-90" />
       <div className="pointer-events-none absolute -right-24 top-0 h-96 w-96 rounded-full bg-brand-orange/20 blur-3xl" />
       <div className="pointer-events-none absolute -left-32 bottom-0 h-80 w-80 rounded-full bg-brand-orange/10 blur-3xl" />
