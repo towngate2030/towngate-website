@@ -18,7 +18,11 @@ export async function Header({ locale }: { locale: string }) {
 
   return (
     <>
-      <MobileMenu locale={locale} items={links as unknown as { href: string; label: string }[]} />
+      <MobileMenu
+        locale={locale}
+        logoUrl={hero.logoUrl || undefined}
+        items={links as unknown as { href: string; label: string }[]}
+      />
       <header className="tg-desktop-header hidden md:block md:absolute md:inset-x-0 md:top-0 md:z-50 md:bg-transparent">
         {/* Desktop row */}
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2 md:px-6 md:py-3">

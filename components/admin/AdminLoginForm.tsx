@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 
-export function AdminLoginForm() {
+export function AdminLoginForm({ logoUrl }: { logoUrl?: string | null }) {
   const [status, setStatus] = useState<"idle" | "loading" | "err">("idle");
   const [error, setError] = useState<string>("");
 
@@ -43,14 +43,16 @@ export function AdminLoginForm() {
       className="mx-auto w-full max-w-md rounded-2xl border border-white/15 bg-white/5 p-8 backdrop-blur-sm"
     >
       <div className="flex flex-col items-center gap-4">
-        <Image
-          src="/brand/towngate-mark.svg"
-          alt="TownGate"
-          width={200}
-          height={48}
-          className="h-10 w-auto"
-          priority
-        />
+        {logoUrl?.trim() ? (
+          <Image
+            src={logoUrl.trim()}
+            alt=""
+            width={220}
+            height={64}
+            className="h-10 w-auto max-w-[240px] object-contain"
+            priority
+          />
+        ) : null}
         <h1 className="text-2xl font-extrabold tracking-tight text-white">
           Admin login
         </h1>

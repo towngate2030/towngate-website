@@ -43,7 +43,6 @@ export default async function HomePage({ params }: Props) {
         <Hero
           locale={locale}
           bgUrl={hero.heroBgUrl || undefined}
-          logoUrl={hero.logoUrl || undefined}
           kicker={hero.kicker[loc]}
           title={hero.title[loc]}
           subtitle={hero.subtitle[loc]}

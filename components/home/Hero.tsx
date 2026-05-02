@@ -7,14 +7,13 @@ import Image from "next/image";
 type Props = {
   locale: string;
   bgUrl?: string;
-  logoUrl?: string;
   kicker: string;
   title: string;
   subtitle: string;
   primaryCta: { href: string; label: string };
 };
 
-export function Hero({ locale, bgUrl, logoUrl, kicker, title, subtitle, primaryCta }: Props) {
+export function Hero({ locale, bgUrl, kicker, title, subtitle, primaryCta }: Props) {
 
   return (
     <section className="relative overflow-hidden bg-brand-navy text-tg-cream">

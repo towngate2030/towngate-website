@@ -10,9 +10,11 @@ type Item = { href: string; label: string };
 
 export function MobileMenu({
   locale,
+  logoUrl,
   items,
 }: {
   locale: string;
+  logoUrl?: string;
   items: Item[];
 }) {
   const [open, setOpen] = useState(false);
@@ -44,22 +46,24 @@ export function MobileMenu({
       <div className="fixed inset-x-0 top-0 z-50 bg-amber-100/95 shadow-sm">
         <div className="relative mx-auto flex min-h-16 max-w-6xl items-center px-4 py-3">
           <div className="absolute left-1/2 -translate-x-1/2">
-            <Link
-              href="/"
-              locale={locale}
-              translate="no"
-              className="inline-flex shrink-0"
-              aria-label="Home"
-            >
-              <Image
-                src="/brand/towngate-mark.svg"
-                alt=""
-                width={48}
-                height={48}
-                className="h-11 w-auto"
-                priority
-              />
-            </Link>
+            {logoUrl?.trim() ? (
+              <Link
+                href="/"
+                locale={locale}
+                translate="no"
+                className="inline-flex max-h-11 max-w-[min(56vw,200px)] shrink-0"
+                aria-label="Home"
+              >
+                <Image
+                  src={logoUrl.trim()}
+                  alt=""
+                  width={200}
+                  height={56}
+                  className="h-11 w-auto object-contain"
+                  priority
+                />
+              </Link>
+            ) : null}
           </div>
 
           {/* Hamburger (always on the RIGHT) */}

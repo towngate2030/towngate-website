@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import Image from "next/image";
 import { AdminLoginForm } from "@/components/admin/AdminLoginForm";
 import { getAdminCookieName, verifyAdminToken } from "@/lib/adminSession";
+import { getHeroSettings } from "@/lib/cms";
 
 export const metadata: Metadata = {
   title: "Internal",
@@ -15,13 +16,15 @@ export const metadata: Metadata = {
  * Next: add real auth + CMS or DB-backed admin here.
  */
 export default async function InternalAdminEntryPage() {
+  const hero = await getHeroSettings();
+  const logoUrl = hero.logoUrl?.trim();
   const token = (await cookies()).get(getAdminCookieName())?.value;
   const session = verifyAdminToken(token);
 
   if (!session.ok) {
     return (
       <div className="min-h-screen bg-brand-navy px-6 py-16 text-tg-cream">
-        <AdminLoginForm />
+        <AdminLoginForm logoUrl={logoUrl} />
       </div>
     );
   }
@@ -30,14 +33,18 @@ export default async function InternalAdminEntryPage() {
     <div className="min-h-screen bg-brand-navy px-6 py-16 text-tg-cream">
       <div className="mx-auto flex max-w-3xl flex-col gap-6 rounded-2xl border border-white/15 bg-white/5 p-8 backdrop-blur-sm">
         <div className="flex items-center justify-between gap-4">
-          <Image
-            src="/brand/towngate-mark.svg"
-            alt="TownGate"
-            width={200}
-            height={48}
-            className="h-9 w-auto"
-            priority
-          />
+          {logoUrl ? (
+            <Image
+              src={logoUrl}
+              alt=""
+              width={220}
+              height={64}
+              className="h-9 w-auto max-w-[200px] object-contain"
+              priority
+            />
+          ) : (
+            <span className="text-sm font-extrabold text-white/90">Admin</span>
+          )}
           <form action="/api/admin/logout" method="post">
             <button className="rounded-full border border-white/20 px-4 py-2 text-xs font-bold text-tg-cream transition hover:bg-white/10">
               Logout

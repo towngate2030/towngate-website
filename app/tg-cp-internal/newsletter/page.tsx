@@ -6,6 +6,7 @@ import { AdminLoginForm } from "@/components/admin/AdminLoginForm";
 import { NewsletterSendPanel, type NewsletterIssueRow } from "@/components/admin/NewsletterSendPanel";
 import { getAdminCookieName, verifyAdminToken } from "@/lib/adminSession";
 import { sanityClient } from "@/lib/sanity";
+import { getHeroSettings } from "@/lib/cms";
 
 export const metadata: Metadata = {
   title: "Newsletter",
@@ -18,13 +19,15 @@ export default async function NewsletterAdminPage({
   searchParams?: Promise<{ issue?: string }>;
 }) {
   const issueHighlight = searchParams ? (await searchParams).issue : undefined;
+  const hero = await getHeroSettings();
+  const logoUrl = hero.logoUrl?.trim();
   const token = (await cookies()).get(getAdminCookieName())?.value;
   const session = verifyAdminToken(token);
 
   if (!session.ok) {
     return (
       <div className="min-h-screen bg-brand-navy px-6 py-16 text-tg-cream">
-        <AdminLoginForm />
+        <AdminLoginForm logoUrl={logoUrl} />
       </div>
     );
   }
@@ -44,14 +47,16 @@ export default async function NewsletterAdminPage({
       <div className="mx-auto flex max-w-5xl flex-col gap-6 rounded-2xl border border-white/15 bg-white/5 p-8 backdrop-blur-sm">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <Image
-              src="/brand/towngate-mark.svg"
-              alt="TownGate"
-              width={200}
-              height={48}
-              className="h-9 w-auto"
-              priority
-            />
+            {logoUrl ? (
+              <Image
+                src={logoUrl}
+                alt=""
+                width={220}
+                height={64}
+                className="h-9 w-auto max-w-[200px] object-contain"
+                priority
+              />
+            ) : null}
             <Link
               href="/tg-cp-internal"
               className="rounded-full border border-white/20 px-4 py-2 text-xs font-bold text-tg-cream transition hover:bg-white/10"
