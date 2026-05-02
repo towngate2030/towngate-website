@@ -59,29 +59,28 @@ export function SiteHeader({
             </div>
           </div>
 
-          <div className="flex w-full flex-col items-center md:pl-[clamp(3rem,11vw,8rem)]">
+          {/* True horizontal center — aligns with hero title + lead form (logo stays separate on the left) */}
+          <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 flex max-w-[min(100%,calc(100%-13rem))] -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1.5 px-2 text-center">
             {line ? (
               <p
                 translate="no"
-                className="mb-1.5 max-w-[42rem] px-2 text-center text-[13px] font-semibold leading-snug tracking-wide text-white drop-shadow-md md:text-sm"
+                className="pointer-events-auto mb-0 max-w-[42rem] text-[13px] font-semibold leading-snug tracking-wide text-white drop-shadow-md md:text-sm"
               >
                 {line}
               </p>
             ) : null}
-            <div className="flex w-full justify-center">
-              <nav className="flex flex-wrap items-center justify-center gap-2 px-2 py-1 md:px-6 md:py-2">
-                {links.map(({ href, label }) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    locale={locale}
-                    className="rounded-full bg-brand-orange px-6 py-3 text-base font-extrabold text-white shadow-lg shadow-brand-orange/25 transition hover:brightness-110"
-                  >
-                    {label}
-                  </Link>
-                ))}
-              </nav>
-            </div>
+            <nav className="pointer-events-auto flex max-w-full flex-wrap items-center justify-center gap-2 py-1 md:py-2">
+              {links.map(({ href, label }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  locale={locale}
+                  className="rounded-full bg-brand-orange px-6 py-3 text-base font-extrabold text-white shadow-lg shadow-brand-orange/25 transition hover:brightness-110"
+                >
+                  {label}
+                </Link>
+              ))}
+            </nav>
           </div>
         </div>
       </header>
