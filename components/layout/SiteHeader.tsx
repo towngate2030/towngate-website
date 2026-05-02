@@ -48,18 +48,21 @@ export function SiteHeader({
               <LocaleSwitcher />
             </div>
           </div>
-          <nav className="flex flex-wrap items-center justify-center gap-2 px-2 py-1 md:px-44 md:py-2">
-            {links.map(({ href, label }) => (
-              <Link
-                key={href}
-                href={href}
-                locale={locale}
-                className="rounded-full bg-brand-orange px-6 py-3 text-base font-extrabold text-white shadow-lg shadow-brand-orange/25 transition hover:brightness-110"
-              >
-                {label}
-              </Link>
-            ))}
-          </nav>
+          {/* Nudge nav toward physical right so it sits closer to optical center above the lead form (logo column on the left) */}
+          <div className="flex w-full justify-center md:pl-[clamp(3rem,11vw,8rem)]">
+            <nav className="flex flex-wrap items-center justify-center gap-2 px-2 py-1 md:px-6 md:py-2">
+              {links.map(({ href, label }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  locale={locale}
+                  className="rounded-full bg-brand-orange px-6 py-3 text-base font-extrabold text-white shadow-lg shadow-brand-orange/25 transition hover:brightness-110"
+                >
+                  {label}
+                </Link>
+              ))}
+            </nav>
+          </div>
         </div>
       </header>
     </>
