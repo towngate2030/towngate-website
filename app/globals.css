@@ -34,28 +34,6 @@ body {
   }
 }
 
-/* Desktop logo: single static image — no float/glow (avoid “ghost” duplicate look) */
-.tg-logo {
-  display: inline-flex;
-}
-
-.tg-logo__img {
-  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.12));
-  transition: transform 240ms ease, filter 240ms ease;
-}
-
-.tg-logo:hover .tg-logo__img,
-.tg-logo:focus-visible .tg-logo__img {
-  transform: translateY(-1px) scale(1.02);
-  filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.16));
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .tg-logo__img {
-    transition: none;
-  }
-}
-
 /* Arch motif — subtle curve for section accents */
 .tg-arch {
   background: radial-gradient(
